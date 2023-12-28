@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - AddWorkflow
 
 env:
   ACTIONS_RUNNER_DEBUG: true
