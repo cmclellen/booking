@@ -1,0 +1,25 @@
+@import "../node_modules/bootstrap/scss/bootstrap.scss";
+
+@font-face {
+    font-family: 'Carattere';
+    src: local('Carattere'), url(./fonts/Carattere/Carattere-Regular.ttf) format('truetype');
+}
+
+@font-face {
+    font-family: 'RubikDoodleShadow';
+    src: local('RubikDoodleShadow'), url(./fonts/Rubik_Doodle_Shadow/RubikDoodleShadow-Regular.ttf) format('truetype');
+}
+
+@font-face {
+    font-family: 'Roboto';
+    src: local('Roboto'), url(./fonts/Roboto/Roboto-Regular.ttf) format('truetype');
+}
+
+@font-face {
+    font-family: 'CarterOne';
+    src: local('CarterOne'), url(./fonts/Carter_One/CarterOne-Regular.ttf) format('truetype');
+}
+
+body {
+    font-family: Roboto, serif;
+}
