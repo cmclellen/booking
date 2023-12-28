@@ -6,14 +6,16 @@ interface WorkflowProps { }
 const Workflow: FC<WorkflowProps> = () => {
    const [events] = useState([]);
 
-   const handleNext = () => { };
+   const handleBookHoliday = () => { 
+      console.log('book holiday');
+   };
 
    return (
       <WorkflowWrapper>
 
          <div className="my-3">
             <p>Your next holiday is long overdue. Book below, and leave the flight, car rental and hotel bookings to us.</p>
-            <button type="button" className="btn btn-outline-secondary" onClick={handleNext}>Book your holiday to Hawaii</button>
+            <button type="button" className="btn btn-outline-secondary" onClick={handleBookHoliday}>Book your holiday to Hawaii</button>
          </div>
 
          <hr className="border-bottom border-1 border-dark"></hr>
