@@ -4,7 +4,7 @@ import { WorkflowWrapper } from './Workflow.styled';
 interface WorkflowProps { }
 
 const Workflow: FC<WorkflowProps> = () => {
-   const [events, setEvents] = useState([]);
+   const [events] = useState([]);
 
    const handleNext = () => { };
 
