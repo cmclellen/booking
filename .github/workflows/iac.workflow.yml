@@ -4,14 +4,16 @@ on:
   push:
     branches:
       - master
-      - CreateIaC
+      - CreateIaC    
+    paths:
+      - iac
 
 env:
   ACTIONS_RUNNER_DEBUG: true
 
 defaults:
   run:
-    working-directory: frontend
+    working-directory: iac
 
 jobs:
   build-test-deploy:
