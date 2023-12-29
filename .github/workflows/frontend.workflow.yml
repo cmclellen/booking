@@ -41,5 +41,3 @@ jobs:
           build_dir: frontend/dist
         env:
           GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
-          VITE_API_BASE_URL: ${{ env.VITE_API_BASE_URL }}
-          VITE_NAME: 'Craig'
