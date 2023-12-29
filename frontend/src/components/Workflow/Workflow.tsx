@@ -5,8 +5,9 @@ import axios from 'axios';
 interface WorkflowProps { }
 
 const initiateBooking = async () => {
+   
    const response =
-     await axios.post("http://localhost:7283/api/Reservation_HttpStart")
+     await axios.post("/api/Reservation_HttpStart")
    console.log(response.data)
 }
 
