@@ -7,6 +7,7 @@ on:
       - CreateIaC
     paths:
       - 'frontend/**'
+      - 'frontend.workflow.yml'
 
 env:
   ACTIONS_RUNNER_DEBUG: true
