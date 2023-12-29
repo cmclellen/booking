@@ -1,4 +1,4 @@
-name: CI & CD
+name: IAC CI & CD
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - master
       - CreateIaC    
     paths:
-      - iac
+      - 'iac/**'
 
 env:
   ACTIONS_RUNNER_DEBUG: true
