@@ -35,7 +35,7 @@ jobs:
           inlineScript: |
             az bicep install
             az bicep version
-            az bicep build-params --file prd.bicepparam
+            az bicep build-params --file iac/prd.bicepparam
 
       - name: deploy
         uses: azure/arm-deploy@v1
