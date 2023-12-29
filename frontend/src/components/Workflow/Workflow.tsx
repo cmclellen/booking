@@ -1,13 +1,31 @@
 import { FC, useState } from 'react';
 import { WorkflowWrapper } from './Workflow.styled';
+import axios from 'axios';
 
 interface WorkflowProps { }
+
+const initiateBooking = async () => {
+
+   var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
+   
+   // const instance = axios.create({
+   //    baseURL: import.meta.env.VITE_API_BASE_URL
+   //  });
+
+   console.log(`URL : ${url}`);
+    
+   const response =
+     await axios.post(url)
+   console.log(response.data)
+}
 
 const Workflow: FC<WorkflowProps> = () => {
    const [events] = useState([]);
 
-   const handleBookHoliday = () => { 
-      console.log('book holiday');
+   const handleBookHoliday = async () => { 
+      initiateBooking().then(() => {
+         console.log('Initiated.');
+      });
    };
 
    return (

@@ -1,0 +1,42 @@
+name: Frontend CI & CD
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend.workflow.yml'
+
+env:
+  ACTIONS_RUNNER_DEBUG: true
+
+defaults:
+  run:
+    working-directory: frontend
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+    environment: github-pages
+    strategy:
+      matrix:
+        node-version: [20.x]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Setup Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: "20.x"
+      - run: npm install
+      - run: npm run build
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+      - name: Deploy
+        uses: crazy-max/ghaction-github-pages@v1
+        with:
+          target_branch: gh-pages
+          build_dir: frontend/dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.REPO_TOKEN }}
