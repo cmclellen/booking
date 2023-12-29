@@ -12,7 +12,7 @@ const initiateBooking = async () => {
    //    baseURL: import.meta.env.VITE_API_BASE_URL
    //  });
 
-   console.log(`URL: ${url}`);
+   console.log(`URL : ${url}`);
     
    const response =
      await axios.post(url)
