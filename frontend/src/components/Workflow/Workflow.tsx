@@ -2,6 +2,8 @@ import { FC, useState } from 'react';
 import { WorkflowWrapper } from './Workflow.styled';
 import axios from 'axios';
 
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL;
+
 interface WorkflowProps { }
 
 const initiateBooking = async () => {

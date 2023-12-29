@@ -10,8 +10,6 @@ import axios from 'axios';
 axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL;
 
 console.log(`base url: ${import.meta.env.VITE_API_BASE_URL}`);
-console.log(`name: ${import.meta.env.VITE_NAME}`);
-
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
