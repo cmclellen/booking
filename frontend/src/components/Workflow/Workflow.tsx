@@ -5,13 +5,17 @@ import axios from 'axios';
 interface WorkflowProps { }
 
 const initiateBooking = async () => {
+
+   var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
    
-   const instance = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL
-    });
+   // const instance = axios.create({
+   //    baseURL: import.meta.env.VITE_API_BASE_URL
+   //  });
+
+   console.log(`URL: ${url}`);
     
    const response =
-     await instance.post("/api/Reservation_HttpStart")
+     await axios.post(url)
    console.log(response.data)
 }
 
