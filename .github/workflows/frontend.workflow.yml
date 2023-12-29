@@ -11,8 +11,8 @@ env:
 
 defaults:
   run:
-    working-directory: ./frontend
-    
+    working-directory: /frontend
+
 jobs:
   build-test-deploy:
     runs-on: ubuntu-latest    
