@@ -77,31 +77,31 @@ resource signalR 'Microsoft.SignalRService/signalR@2022-02-01' = {
     cors: {
       allowedOrigins: allowedOrigins
     }
-    networkACLs: {
-      defaultAction: 'Deny'
-      publicNetwork: {
-        allow: [
-          'ClientConnection'
-        ]
-      }
-      privateEndpoints: [
-        {
-          name: 'mySignalRService.1fa229cd-bf3f-47f0-8c49-afb36723997e'
-          allow: [
-            'ServerConnection'
-          ]
-        }
-      ]
-    }
-    upstream: {
-      templates: [
-        {
-          categoryPattern: '*'
-          eventPattern: 'connect,disconnect'
-          hubPattern: '*'
-          urlTemplate: 'https://example.com/chat/api/connect'
-        }
-      ]
-    }
+    // networkACLs: {
+    //   defaultAction: 'Deny'
+    //   publicNetwork: {
+    //     allow: [
+    //       'ClientConnection'
+    //     ]
+    //   }
+    //   privateEndpoints: [
+    //     {
+    //       name: 'mySignalRService.1fa229cd-bf3f-47f0-8c49-afb36723997e'
+    //       allow: [
+    //         'ServerConnection'
+    //       ]
+    //     }
+    //   ]
+    // }
+    // upstream: {
+    //   templates: [
+    //     {
+    //       categoryPattern: '*'
+    //       eventPattern: 'connect,disconnect'
+    //       hubPattern: '*'
+    //       urlTemplate: 'https://example.com/chat/api/connect'
+    //     }
+    //   ]
+    // }
   }
 }
