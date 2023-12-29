@@ -2,14 +2,16 @@ import { FC, useState } from 'react';
 import { WorkflowWrapper } from './Workflow.styled';
 import axios from 'axios';
 
-axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL;
-
 interface WorkflowProps { }
 
 const initiateBooking = async () => {
    
+   const instance = axios.create({
+      baseURL: import.meta.env.VITE_API_BASE_URL
+    });
+    
    const response =
-     await axios.post("/api/Reservation_HttpStart")
+     await instance.post("/api/Reservation_HttpStart")
    console.log(response.data)
 }
 
