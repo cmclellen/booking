@@ -1,13 +1,22 @@
 import { FC, useState } from 'react';
 import { WorkflowWrapper } from './Workflow.styled';
+import axios from 'axios';
 
 interface WorkflowProps { }
+
+const initiateBooking = async () => {
+   const response =
+     await axios.post("http://localhost:7283/api/Reservation_HttpStart")
+   console.log(response.data)
+}
 
 const Workflow: FC<WorkflowProps> = () => {
    const [events] = useState([]);
 
-   const handleBookHoliday = () => { 
-      console.log('book holiday');
+   const handleBookHoliday = async () => { 
+      initiateBooking().then(() => {
+         console.log('Initiated.');
+      });
    };
 
    return (
