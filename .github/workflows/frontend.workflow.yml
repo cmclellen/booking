@@ -32,7 +32,7 @@ jobs:
       - run: npm install
       - run: npm run build
         env:
-          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          # VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
           VITE_NAME: 'Craig'
       - name: Deploy
         uses: crazy-max/ghaction-github-pages@v1
