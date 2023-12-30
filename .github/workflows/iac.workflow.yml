@@ -36,6 +36,12 @@ jobs:
             az bicep install
             az bicep version
             az bicep build-params --file iac/prd.bicepparam
+
+      - name: Deploy
+        uses: azure/CLI@v1
+        with:
+          azcliversion: 2.55.0
+          inlineScript: |
             az deployment group create --name deployment-reservation-prd --resource-group Reservation --template-file iac/main.bicep --parameters iac/prd.json
 
       # - name: deploy
