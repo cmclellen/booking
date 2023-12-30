@@ -36,12 +36,13 @@ jobs:
             az bicep install
             az bicep version
             az bicep build-params --file iac/prd.bicepparam
+            az deployment group create --name deployment-reservation-prd --resource-group Reservation --template-file iac/main.bicep --parameters iac/prd.json
 
-      - name: deploy
-        uses: azure/arm-deploy@v1
-        with:
-          subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          resourceGroupName: ${{ secrets.AZURE_RG }}
-          template: iac/main.bicep
-          parameters: iac/prd.json
-          failOnStdErr: false
+      # - name: deploy
+      #   uses: azure/arm-deploy@v1
+      #   with:
+      #     subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      #     resourceGroupName: ${{ secrets.AZURE_RG }}
+      #     template: iac/main.bicep
+      #     parameters: iac/prd.json
+      #     failOnStdErr: false
