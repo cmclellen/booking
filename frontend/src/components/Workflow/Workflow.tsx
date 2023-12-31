@@ -17,11 +17,11 @@ const initiateBooking = async () => {
 }
 
 const Workflow: FC<WorkflowProps> = () => {
-   const [events] = useState([]);
+   const [events, setEvents] = useState<Array<string>>([]);
 
    useEffect(() => {
-      connection.on('FlightBookedEvent', (message) => {
-         console.log(`message: ${message}`);
+      connection.on('FlightBookedEvent', (message: string) => {
+         setEvents([...events, message]);
        });
 
        return () => {
@@ -51,10 +51,9 @@ const Workflow: FC<WorkflowProps> = () => {
          }
          <ol className="list-group list-group-numbered">
             {events.map((step, index) => (
-               <li className="list-group-item d-flex justify-content-between align-items-start">
+               <li key={`event-${index}`} className="list-group-item d-flex justify-content-between align-items-start">
                   <div className="ms-2 me-auto">
-                     <div className="fw-bold">Subheading {step}</div>
-                     Cras justo odio {index}
+                     <div className="fw-bold">{step}</div>
                   </div>
                </li>)
             )}

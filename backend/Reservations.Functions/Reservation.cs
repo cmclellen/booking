@@ -46,7 +46,7 @@ namespace Reservations.Functions
             await signalRMessages.AddAsync(new SignalRMessage
             {
                 Target = "FlightBookedEvent",
-                Arguments = new[] { $"The time is {DateTime.Now.ToString(CultureInfo.InvariantCulture)}" }
+                Arguments = new[] { $"{name}; {DateTime.Now.ToString(CultureInfo.InvariantCulture)}" }
             });
             return $"Hello {name}!";
         }
