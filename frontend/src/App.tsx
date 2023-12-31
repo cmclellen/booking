@@ -8,6 +8,7 @@ const hubUrl = `${apiBaseUrl}/api`;
 console.log(`hub url: ${hubUrl}`);
 const connection = new signalR.HubConnectionBuilder()
   .withUrl(hubUrl)
+  .withAutomaticReconnect()
   .configureLogging(signalR.LogLevel.Information)
   .build();
 
