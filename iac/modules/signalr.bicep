@@ -27,7 +27,7 @@ param capacity int = 1
   'Serverless'
   'Classic'
 ])
-param serviceMode string = 'Default'
+param serviceMode string = 'Serverless'
 
 param enableConnectivityLogs bool = true
 
