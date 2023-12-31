@@ -1,6 +1,7 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { WorkflowWrapper } from './Workflow.styled';
 import axios from 'axios';
+import connection from '../../signalr-context';
 
 interface WorkflowProps { }
 
@@ -8,10 +9,6 @@ const initiateBooking = async () => {
 
    var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
    
-   // const instance = axios.create({
-   //    baseURL: import.meta.env.VITE_API_BASE_URL
-   //  });
-
    console.log(`URL : ${url}`);
     
    const response =
@@ -20,7 +17,17 @@ const initiateBooking = async () => {
 }
 
 const Workflow: FC<WorkflowProps> = () => {
-   const [events] = useState([]);
+   const [events, setEvents] = useState<Array<string>>([]);
+
+   useEffect(() => {
+      connection.on('FlightBookedEvent', (message: string) => {
+         setEvents([...events, message]);
+       });
+
+       return () => {
+         connection.off('FlightBookedEvent');
+       }
+    });
 
    const handleBookHoliday = async () => { 
       initiateBooking().then(() => {
@@ -44,10 +51,9 @@ const Workflow: FC<WorkflowProps> = () => {
          }
          <ol className="list-group list-group-numbered">
             {events.map((step, index) => (
-               <li className="list-group-item d-flex justify-content-between align-items-start">
+               <li key={`event-${index}`} className="list-group-item d-flex justify-content-between align-items-start">
                   <div className="ms-2 me-auto">
-                     <div className="fw-bold">Subheading {step}</div>
-                     Cras justo odio {index}
+                     <div className="fw-bold">{step}</div>
                   </div>
                </li>)
             )}
