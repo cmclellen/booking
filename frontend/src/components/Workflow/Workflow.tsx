@@ -1,6 +1,7 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { WorkflowWrapper } from './Workflow.styled';
 import axios from 'axios';
+import connection from '../../signalr-context';
 
 interface WorkflowProps { }
 
@@ -8,10 +9,6 @@ const initiateBooking = async () => {
 
    var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
    
-   // const instance = axios.create({
-   //    baseURL: import.meta.env.VITE_API_BASE_URL
-   //  });
-
    console.log(`URL : ${url}`);
     
    const response =
@@ -21,6 +18,16 @@ const initiateBooking = async () => {
 
 const Workflow: FC<WorkflowProps> = () => {
    const [events] = useState([]);
+
+   useEffect(() => {
+      connection.on('FlightBookedEvent', (message) => {
+         console.log(`message: ${message}`);
+       });
+
+       return () => {
+         connection.off('FlightBookedEvent');
+       }
+    });
 
    const handleBookHoliday = async () => { 
       initiateBooking().then(() => {

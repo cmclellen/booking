@@ -1,8 +1,8 @@
 {
   "profiles": {
-    "Reservation.Functions": {
+    "Reservations.Functions": {
       "commandName": "Project",
-      "commandLineArgs": "--port 7283",
+      "commandLineArgs": "--port 7255",
       "launchBrowser": false
     }
   }
