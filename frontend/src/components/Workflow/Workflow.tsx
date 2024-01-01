@@ -22,7 +22,8 @@ const Workflow: FC<WorkflowProps> = () => {
       setEvents([]);
       var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
       console.log(`Invoking ${url}...`);
-      await axios.post(url);
+      const connectionId = connectionRef?.connectionId;
+      await axios.post(url, {connectionId});
       console.log(`Invoked ${url}.`);
    };
 
