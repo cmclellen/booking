@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - FixAppSettings
     paths:
       - 'backend/**'
       - '.github/workflows/backend.workflow.yml'
@@ -15,7 +14,6 @@ env:
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 6.0.x
   WORKING_DIRECTORY: backend/Reservations.Functions
-  AzureSignalRConnectionString: blah
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -53,7 +51,6 @@ jobs:
         app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
         publish-profile: ${{ secrets.fn_res_aueast_0FF0 }}
         package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
-        AzureSignalRConnectionString: Doh
 
     # https://github.com/marketplace/actions/azure-app-service-settings
     - uses: azure/login@v1
