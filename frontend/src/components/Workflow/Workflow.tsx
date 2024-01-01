@@ -1,7 +1,7 @@
 import { FC, useEffect, useState } from 'react';
 import { WorkflowWrapper } from './Workflow.styled';
 import axios from 'axios';
-import connection from '../../signalr-context';
+// import connection from '../../signalr-context';
 
 interface WorkflowProps { }
 
@@ -19,15 +19,15 @@ const initiateBooking = async () => {
 const Workflow: FC<WorkflowProps> = () => {
    const [events, setEvents] = useState<Array<string>>([]);
 
-   useEffect(() => {
-      connection.on('FlightBookedEvent', (message: string) => {
-         setEvents([...events, message]);
-       });
+   // useEffect(() => {
+   //    connection.on('FlightBookedEvent', (message: string) => {
+   //       setEvents([...events, message]);
+   //     });
 
-       return () => {
-         connection.off('FlightBookedEvent');
-       }
-    });
+   //     return () => {
+   //       connection.off('FlightBookedEvent');
+   //     }
+   //  });
 
    const handleBookHoliday = async () => { 
       initiateBooking().then(() => {
