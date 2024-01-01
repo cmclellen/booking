@@ -31,9 +31,9 @@ namespace Reservations.Functions
             Console.WriteLine(context.InstanceId);
             var makeReservationRequest = context.GetInput<ReservationRequest>();
 
-            await context.CallActivityAsync<string>(nameof(ReserveFlight), makeReservationRequest.ConnectionId);
-            await context.CallActivityAsync<string>(nameof(ReserveCar), makeReservationRequest.ConnectionId);
-            await context.CallActivityAsync<string>(nameof(ReserveHotel), makeReservationRequest.ConnectionId);
+            await context.CallActivityAsync(nameof(ReserveFlight), makeReservationRequest.ConnectionId);
+            await context.CallActivityAsync(nameof(ReserveCar), makeReservationRequest.ConnectionId);
+            await context.CallActivityAsync(nameof(ReserveHotel), makeReservationRequest.ConnectionId);
         }
 
         [FunctionName(nameof(ReserveCar))]
