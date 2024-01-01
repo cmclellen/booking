@@ -19,6 +19,7 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: github-pages
     steps:
     - uses: actions/checkout@v4
     - name: Setup .NET SDK
@@ -38,6 +39,7 @@ jobs:
         path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
   deploy:
     runs-on: ubuntu-latest
+    environment: github-pages
     needs: build
     steps:
     - name: Download artifact from build job
