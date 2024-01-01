@@ -21,6 +21,8 @@ param pricingTier string = 'Free_F1'
 ])
 param capacity int = 1
 
+param resourceNameFormat string
+
 @description('Visit https://github.com/Azure/azure-signalr/blob/dev/docs/faq.md#service-mode to understand SignalR Service Mode.')
 @allowed([
   'Default'
@@ -41,7 +43,7 @@ param allowedOrigins array = [
 ]
 
 resource signalR 'Microsoft.SignalRService/signalR@2022-02-01' = {
-  name: 'sigr-res-aueast'
+  name: format(resourceNameFormat, 'sigr', '')
   location: location
   tags: tags
   sku: {
