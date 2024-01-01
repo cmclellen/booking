@@ -1,38 +1,29 @@
 import { FC, useEffect, useState } from 'react';
 import { WorkflowWrapper } from './Workflow.styled';
 import axios from 'axios';
-// import connection from '../../signalr-context';
+import connectionRef from '../../signalr-context';
 
 interface WorkflowProps { }
-
-const initiateBooking = async () => {
-
-   var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
-   
-   console.log(`URL : ${url}`);
-    
-   const response =
-     await axios.post(url)
-   console.log(response.data)
-}
 
 const Workflow: FC<WorkflowProps> = () => {
    const [events, setEvents] = useState<Array<string>>([]);
 
-   // useEffect(() => {
-   //    connection.on('FlightBookedEvent', (message: string) => {
-   //       setEvents([...events, message]);
-   //     });
-
-   //     return () => {
-   //       connection.off('FlightBookedEvent');
-   //     }
-   //  });
-
-   const handleBookHoliday = async () => { 
-      initiateBooking().then(() => {
-         console.log('Initiated.');
+   useEffect(() => {
+      connectionRef!.on('FlightBookedEvent', (message: string) => {
+         setEvents([...events, message]);
       });
+
+      return () => {
+         connectionRef!.off('FlightBookedEvent');
+      }
+   });
+
+   const handleBookHoliday = async () => {
+      setEvents([]);
+      var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
+      console.log(`Invoking ${url}...`);
+      await axios.post(url);
+      console.log(`Invoked ${url}.`);
    };
 
    return (
