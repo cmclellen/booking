@@ -51,3 +51,16 @@ jobs:
         publish-profile: ${{ secrets.fn_res_aueast_0FF0 }}
         package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
         AzureSignalRConnectionString: Doh
+
+    # https://github.com/marketplace/actions/azure-app-service-settings
+    - uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - uses: azure/appservice-settings@v1
+      with:
+        app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+        app-settings-json: '${{ secrets.APP_SETTINGS }}'
+      id: settings
+    - run: echo "The webapp-url is ${{ steps.settings.outputs.webapp-url }}"
+    - run: |
+        az logout
