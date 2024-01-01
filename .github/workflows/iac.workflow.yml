@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-      - FixSettings
+      - FixAppSettings
     paths:
       - 'iac/**'
       - '.github/workflows/iac.workflow.yml'

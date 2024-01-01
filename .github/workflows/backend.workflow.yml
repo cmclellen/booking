@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - FixAppSettings
     paths:
       - 'backend/**'
       - '.github/workflows/backend.workflow.yml'
