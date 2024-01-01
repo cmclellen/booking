@@ -2,7 +2,10 @@ name: Build and deploy .NET Core application to Function App fn-res-aueast
 on:
   push:
     branches:
-    - Deplooyitall
+      - master
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.workflow.yml'
 env:
   AZURE_FUNCTIONAPP_NAME: fn-res-aueast
   AZURE_FUNCTIONAPP_PACKAGE_PATH: Reservations.Functions/published
