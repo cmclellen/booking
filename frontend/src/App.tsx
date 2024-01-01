@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import './App.scss'
 import Header from './components/Header/Header'
 import { start, stop } from './signalr-context';
