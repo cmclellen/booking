@@ -13,18 +13,17 @@ const connection = new signalR.HubConnectionBuilder()
 
 connection.onclose(() => console.log('SignalR disconnected.'));
 
-console.log('SignalR connecting...');
-
 async function start() {
   try {
+    console.log('SignalR connecting...');
     await connection.start();
     console.log('SignalR connected.');
   } catch(err) {
     console.error(err);
-    setTimeout(start, 3000)
+    setTimeout(start, 4000)
   }
 }
 
-start();
+await start();
 
 export default connection;
