@@ -56,6 +56,13 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
       linuxFxVersion: 'DOTNET|6.0'
       ftpsState: 'Disabled'
       minTlsVersion: '1.2'
+      cors: {
+        allowedOrigins: [
+          'https://cmclellen.github.io'
+          'http://localhost:5173'
+        ]
+        supportCredentials: true
+      }
       appSettings: [
         {
           name: 'FUNCTIONS_WORKER_RUNTIME'
