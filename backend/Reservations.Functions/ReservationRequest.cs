@@ -1,6 +1,7 @@
 namespace Reservations.Functions;
 
-internal class ReservationRequest
+public class ReservationRequest
 {
     public string ConnectionId { get; set; }
+    public string SimulateFailure { get; set; }
 }
