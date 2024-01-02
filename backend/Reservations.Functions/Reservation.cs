@@ -14,6 +14,13 @@ namespace Reservations.Functions
 {
     public class Reservation
     {
+        private readonly ILogger<Reservation> _logger;
+
+        public Reservation(ILogger<Reservation> logger)
+        {
+            _logger = logger;
+        }
+
         [FunctionName("negotiate")]
         public SignalRConnectionInfo Negotiate(
             [HttpTrigger(AuthorizationLevel.Anonymous)]
@@ -28,27 +35,48 @@ namespace Reservations.Functions
         public async Task RunOrchestrator(
             [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
-            Console.WriteLine(context.InstanceId);
+            var logger = context.CreateReplaySafeLogger(_logger);
+
+            logger.LogDebug("Initiating orchestration...");
             var makeReservationRequest = context.GetInput<ReservationRequest>();
 
+            logger.LogInformation("Reserving flight...");
             await context.CallActivityAsync(nameof(ReserveFlight), makeReservationRequest);
+            logger.LogInformation("Successfully reserved flight.");
+
             try
             {
+                logger.LogInformation("Reserving car rental...");
                 await context.CallActivityAsync(nameof(ReserveCar), makeReservationRequest);
-
-                try
-                {
-                    await context.CallActivityAsync(nameof(ReserveHotel), makeReservationRequest);
-                }
-                catch (Exception)
-                {
-                    await context.CallActivityAsync(nameof(CancelCarReservation), makeReservationRequest);
-                    await context.CallActivityAsync(nameof(CancelFlightReservation), makeReservationRequest);
-                }
+                logger.LogInformation("Successfully reserved car rental.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                logger.LogError(ex, "Failed to reserve car rental.");
+
+                logger.LogInformation("Cancelling flight...");
                 await context.CallActivityAsync(nameof(CancelFlightReservation), makeReservationRequest);
+                logger.LogInformation("Successfully cancelled flight.");
+                return;
+            }
+
+            try
+            {
+                logger.LogInformation("Reserving hotel...");
+                await context.CallActivityAsync(nameof(ReserveHotel), makeReservationRequest);
+                logger.LogInformation("Successfully reserved hotel.");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to reserve hotel.");
+
+                logger.LogInformation("Cancelling car rental...");
+                await context.CallActivityAsync(nameof(CancelCarReservation), makeReservationRequest);
+                logger.LogInformation("Successfully cancelled car rental.");
+
+                logger.LogInformation("Cancelling flight...");
+                await context.CallActivityAsync(nameof(CancelFlightReservation), makeReservationRequest);
+                logger.LogInformation("Successfully cancelled flight.");
             }
         }
 
