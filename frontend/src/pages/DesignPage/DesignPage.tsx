@@ -1,6 +1,7 @@
 import { FC } from 'react';
 import { DesignPageWrapper, Heading } from './DesignPage.styled';
 import designsvg from '../../assets/design.svg';
+import sequencesvg from '../../assets/sequence.svg';
 import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -24,7 +25,9 @@ const DesignPage: FC<DesignPageProps> = () => (
             cancelled, eg. retries, etc. This example was just to demo sagas using Durable functions and compensating actions.
          </div>
          <Heading>Architecture Diagram</Heading>
-         <img src={designsvg} alt="Design" className="img-fluid" />
+         <img src={designsvg} alt="Architecture Diagram" className="img-fluid" />
+         <Heading>Sequence Diagram</Heading>
+         <img src={sequencesvg} alt="Sequence Diagram" className="img-fluid" />
       </div>
    </DesignPageWrapper>
 );
