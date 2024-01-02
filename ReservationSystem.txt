@@ -1,0 +1,25 @@
+title Reservation System
+
+actor user
+participant "Client Browser" as browser
+participant FnApp
+participant "Airline" as air
+participant "Car Rental" as car
+participant "Hotel" as hotel
+
+
+user->browser:Initiate reservation request
+browser->FnApp:Invoke HttpTrigger endpoint
+FnApp->FnApp:Invoke Durable Function
+note over FnApp:Reservation orchestration initiated
+FnApp->>air:Make flight reservation
+air-->>FnApp:Reserved flight confirmation
+FnApp-->>browser:Flight reservation confirmed notification
+
+FnApp->>car:Make car rental reservation
+car-->>FnApp:Reserved car rental confirmation
+FnApp-->>browser:Car rental reservation confirmed notification
+
+FnApp->>hotel:Make hotel reservation
+hotel-->>FnApp:Reserved hotel confirmation
+FnApp-->>browser:Hotel reservation confirmed notification
