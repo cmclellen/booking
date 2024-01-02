@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { DemoPageWrapper } from './DemoPage.styled';
 import Workflow from '../../components/Workflow/Workflow';
 

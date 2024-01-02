@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import { FC } from 'react';
 import { DesignPageWrapper } from './DesignPage.styled';
 import designsvg from '../../assets/design.svg';
 import { faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
