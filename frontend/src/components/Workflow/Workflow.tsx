@@ -54,8 +54,8 @@ const Workflow: FC<WorkflowProps> = () => {
       <WorkflowWrapper>
 
          <div className="my-3">
-            <p>Your next holiday is long overdue. Book below, and leave the flight, car rental and hotel bookings to us.</p>
-            <button type="button" className="btn btn-outline-secondary" onClick={handleBookHoliday}>Book your holiday to Hawaii</button>
+            <p>Your next holiday is long overdue. Reserve your holiday below, and leave the flight, rental car and hotel reservations to us.</p>
+            <button type="button" className="btn btn-outline-secondary" onClick={handleBookHoliday}>Reserve your holiday to Hawaii</button>
          </div>
          <Form>
             <Form.Check
@@ -87,7 +87,7 @@ const Workflow: FC<WorkflowProps> = () => {
 
          <hr className="border-bottom border-1 border-dark"></hr>
 
-         <h3 className="text-muted">The Event Log</h3>
+         <h3 className="text-muted">Event Log</h3>
          {events.length == 0 &&
             <div>No event(s) have been logged just yet.</div>
          }
