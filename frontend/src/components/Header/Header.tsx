@@ -1,6 +1,8 @@
 import { FC } from 'react';
 import { HeaderWrapper, Brand, AppTitle } from './Header.styled';
 import { Link } from 'react-router-dom';
+import { faGithub } from '@fortawesome/free-brands-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 interface HeaderProps { }
 
@@ -15,10 +17,13 @@ const Header: FC<HeaderProps> = () => (
             <div className="collapse navbar-collapse justify-content-end" id="navbarNav">
                <ul className="navbar-nav">
                   <li className="nav-item">
-                     <Link className="nav-link active" aria-current="page" to="/design">Design</Link>
+                     <Link className="nav-link" to="/design">Design</Link>
                   </li>
                   <li className="nav-item">
-                     <Link className="nav-link active" aria-current="page" to="/demo">Demo</Link>
+                     <Link className="nav-link" to="/demo">Demo</Link>
+                  </li>
+                  <li className="nav-item">
+                     <Link className="nav-link" title='cmclellen/reservation' target='_blank' to="https://github.com/cmclellen/reservation"><FontAwesomeIcon icon={faGithub}></FontAwesomeIcon></Link>
                   </li>
                </ul>
             </div>
