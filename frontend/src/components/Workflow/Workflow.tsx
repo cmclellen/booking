@@ -69,8 +69,9 @@ const Workflow: FC<WorkflowProps> = () => {
             />
 
             <div className="d-inline-flex">
-            {['Flight', 'Car', 'Hotel'].map((type) => (
+            {['Flight', 'Car', 'Hotel'].map((type, typeIndex) => (
                <Form.Check
+                  key={`type-${typeIndex}`}
                   disabled={!simulateFailureEnabled}
                   inline
                   type='radio'
