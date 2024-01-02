@@ -22,14 +22,13 @@ const Workflow: FC<WorkflowProps> = () => {
    });
 
    const handleBookHoliday = async () => {
-      var events = [];
       var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
       console.log(`Invoking ${url}...`);
-      events.push(`Initiating reservation...`);
-      setEvents(events);
+      var eventList = [`Initiating reservation...`];
+      setEvents(eventList);
       const connectionId = connectionRef?.connectionId;
-      await axios.post(url, { connectionId, simulateFailure });      
-      addEvent(`Reservation initiated.`);
+      await axios.post(url, { connectionId, simulateFailure });
+      setEvents([...eventList, `Reservation initiated.`]);
    };
 
    const addEvent = (message: string) => {
