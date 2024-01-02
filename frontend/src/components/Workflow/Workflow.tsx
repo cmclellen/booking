@@ -29,7 +29,7 @@ const Workflow: FC<WorkflowProps> = () => {
       setEvents(events);
       const connectionId = connectionRef?.connectionId;
       await axios.post(url, { connectionId, simulateFailure });
-      events.push(`Reservation initiated .`);
+      events.push(`Reservation initiated.`);
       setEvents(events);
    };
 
