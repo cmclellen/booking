@@ -28,9 +28,8 @@ const Workflow: FC<WorkflowProps> = () => {
       events.push(`Initiating reservation...`);
       setEvents(events);
       const connectionId = connectionRef?.connectionId;
-      await axios.post(url, { connectionId, simulateFailure });
-      events.push(`Reservation initiated.`);
-      setEvents(events);
+      await axios.post(url, { connectionId, simulateFailure });      
+      addEvent(`Reservation initiated.`);
    };
 
    const addEvent = (message: string) => {
