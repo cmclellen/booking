@@ -9,22 +9,29 @@ const Workflow: FC<WorkflowProps> = () => {
    const [events, setEvents] = useState<Array<string>>([]);
 
    useEffect(() => {
-      connectionRef!.on('FlightBookedEvent', (message: string) => {
-         setEvents([...events, message]);
+      connectionRef!.on('ReservationEvent', (message: string) => {
+         addEvent(message);
       });
 
       return () => {
-         connectionRef!.off('FlightBookedEvent');
+         connectionRef!.off('ReservationEvent');
       }
    });
 
    const handleBookHoliday = async () => {
-      setEvents([]);
+      var events = [];
       var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
       console.log(`Invoking ${url}...`);
+      events.push(`Initiating reservation...`);
+      setEvents(events);
       const connectionId = connectionRef?.connectionId;
       await axios.post(url, {connectionId});
-      console.log(`Invoked ${url}.`);
+      events.push(`Initiated reservation.`);
+      setEvents(events);
+   };
+
+   const addEvent = (message: string) => {
+      setEvents([...events, message]);
    };
 
    return (

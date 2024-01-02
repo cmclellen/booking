@@ -1,7 +1,7 @@
 using System;
-using System.Globalization;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.WebJobs;
@@ -12,10 +12,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Reservations.Functions
 {
-    public static class Reservation
+    public class Reservation
     {
         [FunctionName("negotiate")]
-        public static SignalRConnectionInfo Negotiate(
+        public SignalRConnectionInfo Negotiate(
             [HttpTrigger(AuthorizationLevel.Anonymous)]
             HttpRequest req,
             [SignalRConnectionInfo(HubName = "serverless")]
@@ -25,7 +25,7 @@ namespace Reservations.Functions
         }
 
         [FunctionName(nameof(Reservation))]
-        public static async Task RunOrchestrator(
+        public async Task RunOrchestrator(
             [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             Console.WriteLine(context.InstanceId);
@@ -37,70 +37,56 @@ namespace Reservations.Functions
         }
 
         [FunctionName(nameof(ReserveCar))]
-        public static async Task ReserveCar([ActivityTrigger] string connectionId, ILogger log,
-            [SignalR(HubName = "serverless")] IAsyncCollector<SignalRMessage> signalRMessages)
+        public async Task ReserveCar([ActivityTrigger] string connectionId, ILogger log,
+            [SignalR(HubName = "serverless")] IAsyncCollector<SignalRMessage> signalRMessages,
+            CancellationToken cancellationToken)
+        {
+            await SendMessageAsync(connectionId, signalRMessages, "Booking car...", cancellationToken);
+
+            await Task.Delay(1000, cancellationToken);
+
+            await SendMessageAsync(connectionId, signalRMessages, "Car booked.", cancellationToken);
+        }
+
+        private async Task SendMessageAsync(string connectionId,
+            IAsyncCollector<SignalRMessage> signalRMessages,
+            string message,
+            CancellationToken cancellationToken)
         {
             await signalRMessages.AddAsync(new SignalRMessage
             {
                 ConnectionId = connectionId,
-                Target = "FlightBookedEvent",
-                Arguments = new[] { $"{DateTime.Now.ToString(CultureInfo.InvariantCulture)}; Booking car..." }
-            });
-
-            await Task.Delay(1000);
-
-            await signalRMessages.AddAsync(new SignalRMessage
-            {
-                ConnectionId = connectionId,
-                Target = "FlightBookedEvent",
-                Arguments = new[] { $"{DateTime.Now.ToString(CultureInfo.InvariantCulture)}; Car booked." }
-            });
+                Target = "ReservationEvent",
+                Arguments = new[] { message }
+            }, cancellationToken);
         }
 
         [FunctionName(nameof(ReserveHotel))]
-        public static async Task ReserveHotel([ActivityTrigger] string connectionId, ILogger log,
-            [SignalR(HubName = "serverless")] IAsyncCollector<SignalRMessage> signalRMessages)
+        public async Task ReserveHotel([ActivityTrigger] string connectionId, ILogger log,
+            [SignalR(HubName = "serverless")] IAsyncCollector<SignalRMessage> signalRMessages,
+            CancellationToken cancellationToken)
         {
-            await signalRMessages.AddAsync(new SignalRMessage
-            {
-                ConnectionId = connectionId,
-                Target = "FlightBookedEvent",
-                Arguments = new[] { $"{DateTime.Now.ToString(CultureInfo.InvariantCulture)}; Booking hotel..." }
-            });
+            await SendMessageAsync(connectionId, signalRMessages, "Booking hotel...", cancellationToken);
 
-            await Task.Delay(1000);
+            await Task.Delay(1000, cancellationToken);
 
-            await signalRMessages.AddAsync(new SignalRMessage
-            {
-                ConnectionId = connectionId,
-                Target = "FlightBookedEvent",
-                Arguments = new[] { $"{DateTime.Now.ToString(CultureInfo.InvariantCulture)}; Hotel booked." }
-            });
+            await SendMessageAsync(connectionId, signalRMessages, "Hotel booked.", cancellationToken);
         }
 
         [FunctionName(nameof(ReserveFlight))]
-        public static async Task ReserveFlight([ActivityTrigger] string connectionId, ILogger log,
-            [SignalR(HubName = "serverless")] IAsyncCollector<SignalRMessage> signalRMessages)
+        public async Task ReserveFlight([ActivityTrigger] string connectionId, ILogger log,
+            [SignalR(HubName = "serverless")] IAsyncCollector<SignalRMessage> signalRMessages,
+            CancellationToken cancellationToken)
         {
-            await signalRMessages.AddAsync(new SignalRMessage
-            {
-                ConnectionId = connectionId,
-                Target = "FlightBookedEvent",
-                Arguments = new[] { $"{DateTime.Now.ToString(CultureInfo.InvariantCulture)}; Booking flight..." }
-            });
+            await SendMessageAsync(connectionId, signalRMessages, "Booking flight...", cancellationToken);
 
-            await Task.Delay(1000);
+            await Task.Delay(1000, cancellationToken);
 
-            await signalRMessages.AddAsync(new SignalRMessage
-            {
-                ConnectionId = connectionId,
-                Target = "FlightBookedEvent",
-                Arguments = new[] { $"{DateTime.Now.ToString(CultureInfo.InvariantCulture)}; Flight booked." }
-            });
+            await SendMessageAsync(connectionId, signalRMessages, "Flight booked.", cancellationToken);
         }
 
         [FunctionName("Reservation_HttpStart")]
-        public static async Task<HttpResponseMessage> HttpStart(
+        public async Task<HttpResponseMessage> HttpStart(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")]
             HttpRequestMessage req,
             [DurableClient] IDurableOrchestrationClient starter,
@@ -108,9 +94,7 @@ namespace Reservations.Functions
         {
             var makeReservationRequest = await req.Content!.ReadFromJsonAsync<ReservationRequest>();
             var instanceId = await starter.StartNewAsync(nameof(Reservation), makeReservationRequest);
-
             log.LogInformation("Started orchestration with ID = '{instanceId}'.", instanceId);
-
             return starter.CreateCheckStatusResponse(req, instanceId);
         }
     }
