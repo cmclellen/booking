@@ -69,6 +69,7 @@ const Workflow: FC<WorkflowProps> = () => {
                onChange={onSimulateFailureEnabledChanged}
             />
 
+            <div className="d-inline-flex">
             {['Flight', 'Car', 'Hotel'].map((type) => (
                <Form.Check
                   disabled={!simulateFailureEnabled}
@@ -82,6 +83,7 @@ const Workflow: FC<WorkflowProps> = () => {
                   onChange={onSimulateFailureChanged}
                />
             ))}
+            </div>
          </Form>
 
          <hr className="border-bottom border-1 border-dark"></hr>
