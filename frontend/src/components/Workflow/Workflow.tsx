@@ -37,13 +37,11 @@ const Workflow: FC<WorkflowProps> = () => {
 
    function onSimulateFailureChanged(e: any) {
       var val = e.target.value;
-      console.log(val);
       setSimulateFailure(val);
    }
 
    function onSimulateFailureEnabledChanged(e: any) {
       var val = e.target.checked;
-      console.log(val);
       setSimulateFailureEnabled(val);
       if(!val) {
          setSimulateFailure(undefined);

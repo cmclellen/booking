@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - AddLogging
     paths:
       - 'backend/**'
       - '.github/workflows/backend.workflow.yml'
