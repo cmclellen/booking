@@ -9,16 +9,21 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.Extensions.Logging;
+using Reservations.Functions.Repositories;
 
 namespace Reservations.Functions
 {
     public class Reservation
     {
         private readonly ILogger<Reservation> _logger;
+        private readonly IReservationEventRepository _reservationEventRepository;
 
-        public Reservation(ILogger<Reservation> logger)
+        public Reservation(
+            ILogger<Reservation> logger,
+            IReservationEventRepository reservationEventRepository)
         {
             _logger = logger;
+            _reservationEventRepository = reservationEventRepository;
         }
 
         [FunctionName("negotiate")]
@@ -114,7 +119,8 @@ namespace Reservations.Functions
             await SendMessageAsync(reservationRequest, type, signalRMessages, $"Cancelling {type} reservation...",
                 cancellationToken);
             await SimulateProcessRequest(type, reservationRequest, signalRMessages, false, cancellationToken);
-            await SendMessageAsync(reservationRequest, type, signalRMessages, $"{type} reservation cancelled.", cancellationToken);
+            await SendMessageAsync(reservationRequest, type, signalRMessages, $"{type} reservation cancelled.",
+                cancellationToken);
         }
 
         [FunctionName(nameof(ReserveCar))]
@@ -129,8 +135,8 @@ namespace Reservations.Functions
         private async Task MakeReservation(string type, ReservationRequest reservationRequest,
             IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
         {
-            var connectionId = reservationRequest.ConnectionId;
-            await SendMessageAsync(reservationRequest, type, signalRMessages, $"Reserving {type}...", cancellationToken);
+            await SendMessageAsync(reservationRequest, type, signalRMessages, $"Reserving {type}...",
+                cancellationToken);
             await SimulateProcessRequest(type, reservationRequest, signalRMessages, true, cancellationToken);
             await SendMessageAsync(reservationRequest, type, signalRMessages, $"{type} reserved.", cancellationToken);
         }
@@ -140,11 +146,13 @@ namespace Reservations.Functions
             string message,
             CancellationToken cancellationToken)
         {
+            await _reservationEventRepository.AddAsync(reservationRequest.ConnectionId, reservationRequest.Id, message,
+                cancellationToken);
             await signalRMessages.AddAsync(new SignalRMessage
             {
                 ConnectionId = reservationRequest.ConnectionId,
                 Target = "ReservationEvent",
-                Arguments = new[] { message, type, reservationRequest.Id },
+                Arguments = new[] { message, type, reservationRequest.Id }
             }, cancellationToken);
         }
 
