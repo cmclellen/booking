@@ -85,8 +85,8 @@ resource signalR 'Microsoft.SignalRService/signalR@2022-02-01' = {
 }
 
 var roleIds = [
-  '420fcaa2-552c-430f-98ca-3264be4806c7'
-  '7e4f1700-ea5a-4f59-8f37-079cfe29dce3'
+  '420fcaa2-552c-430f-98ca-3264be4806c7' // SignalR App Server
+  '7e4f1700-ea5a-4f59-8f37-079cfe29dce3' // SignalR Service Owner
 ]
 
 resource signalRRoleDefinitions 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = [for roleId in roleIds: {

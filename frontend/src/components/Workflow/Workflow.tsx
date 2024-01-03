@@ -131,13 +131,17 @@ const Workflow: FC<WorkflowProps> = () => {
 
          <hr className="border-bottom border-1 border-dark"></hr>
 
-         <h3 className="text-muted">Event Log</h3>
+         <div className="d-md-inline-flex align-items-center">
+            <h3 className="text-muted mb-0 mb-md-2">Event Log</h3>
+            {!!invocationId && (<small className="text-muted ms-md-3">Invocation ID: {invocationId}</small>)}
+         </div>
+         
          {events.length == 0 &&
             <div>No event(s) have been logged just yet.</div>
          }
          <ol className="list-group list-group-numbered">
             {events.map((step, index) => (
-               <li key={`event-${index}`} className="list-group-item d-flex justify-content-between align-items-start p-3 align-items-center">
+               <li key={`event-${index}`} className="list-group-item d-flex justify-content-between p-3 align-items-center">
                   <div className="ms-2 me-auto d-flex">
                      {getIcon(step.type)}
                      <div className="fw-bold">{step.message}</div>
