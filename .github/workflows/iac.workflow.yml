@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - AddLogging
     paths:
       - 'iac/**'
       - '.github/workflows/iac.workflow.yml'

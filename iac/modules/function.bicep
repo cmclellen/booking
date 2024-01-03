@@ -28,7 +28,6 @@ resource hostingPlan 'Microsoft.Web/serverfarms@2023-01-01' = {
   }
 }
 
-
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
   name: format(resourceNameFormat, 'appi', '')
   location: location
@@ -93,3 +92,5 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
     httpsOnly: true
   }
 }
+
+output functionAppPrincipalId string = functionApp.identity.principalId
