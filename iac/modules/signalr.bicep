@@ -89,11 +89,26 @@ resource signalRAppServerRoleDefinition 'Microsoft.Authorization/roleDefinitions
   name: '420fcaa2-552c-430f-98ca-3264be4806c7'
 }
 
-resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource signalRServiceOwnerRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  scope: subscription()
+  name: '7e4f1700-ea5a-4f59-8f37-079cfe29dce3'
+}
+
+resource roleAssignmentAppServer 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: signalR
   name: guid(signalR.id, functionAppPrincipalId, signalRAppServerRoleDefinition.id)
   properties: {
     roleDefinitionId: signalRAppServerRoleDefinition.id
+    principalId: functionAppPrincipalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource roleAssignmentServiceOwner 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: signalR
+  name: guid(signalR.id, functionAppPrincipalId, signalRServiceOwnerRoleDefinition.id)
+  properties: {
+    roleDefinitionId: signalRServiceOwnerRoleDefinition.id
     principalId: functionAppPrincipalId
     principalType: 'ServicePrincipal'
   }
