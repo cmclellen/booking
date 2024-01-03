@@ -23,6 +23,8 @@ param capacity int = 1
 
 param resourceNameFormat string
 
+param functionAppPrincipalId string
+
 @description('Visit https://github.com/Azure/azure-signalr/blob/dev/docs/faq.md#service-mode to understand SignalR Service Mode.')
 @allowed([
   'Default'
@@ -79,31 +81,35 @@ resource signalR 'Microsoft.SignalRService/signalR@2022-02-01' = {
     cors: {
       allowedOrigins: allowedOrigins
     }
-    // networkACLs: {
-    //   defaultAction: 'Deny'
-    //   publicNetwork: {
-    //     allow: [
-    //       'ClientConnection'
-    //     ]
-    //   }
-    //   privateEndpoints: [
-    //     {
-    //       name: 'mySignalRService.1fa229cd-bf3f-47f0-8c49-afb36723997e'
-    //       allow: [
-    //         'ServerConnection'
-    //       ]
-    //     }
-    //   ]
-    // }
-    // upstream: {
-    //   templates: [
-    //     {
-    //       categoryPattern: '*'
-    //       eventPattern: 'connect,disconnect'
-    //       hubPattern: '*'
-    //       urlTemplate: 'https://example.com/chat/api/connect'
-    //     }
-    //   ]
-    // }
+  }
+}
+
+resource signalRAppServerRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  scope: subscription()
+  name: '420fcaa2-552c-430f-98ca-3264be4806c7'
+}
+
+resource signalRServiceOwnerRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+  scope: subscription()
+  name: '7e4f1700-ea5a-4f59-8f37-079cfe29dce3'
+}
+
+resource roleAssignmentAppServer 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: signalR
+  name: guid(signalR.id, functionAppPrincipalId, signalRAppServerRoleDefinition.id)
+  properties: {
+    roleDefinitionId: signalRAppServerRoleDefinition.id
+    principalId: functionAppPrincipalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource roleAssignmentServiceOwner 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: signalR
+  name: guid(signalR.id, functionAppPrincipalId, signalRServiceOwnerRoleDefinition.id)
+  properties: {
+    roleDefinitionId: signalRServiceOwnerRoleDefinition.id
+    principalId: functionAppPrincipalId
+    principalType: 'ServicePrincipal'
   }
 }

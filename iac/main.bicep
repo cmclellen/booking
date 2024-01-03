@@ -11,15 +11,6 @@ param tags object = {
 
 var resourceNameFormat = '{0}-res{1}-aueast'
 
-module signalr './modules/signalr.bicep' = {
-    name: 'SignalR'
-    params: {
-        location: location
-        resourceNameFormat: resourceNameFormat
-        tags: tags
-    }
-}
-
 module fnapp './modules/function.bicep' = {
   name: 'FnApp'
   params: {
@@ -27,4 +18,14 @@ module fnapp './modules/function.bicep' = {
       resourceNameFormat: resourceNameFormat
       tags: tags
   }
+}
+
+module signalr './modules/signalr.bicep' = {
+    name: 'SignalR'
+    params: {
+        location: location
+        resourceNameFormat: resourceNameFormat
+        tags: tags
+        functionAppPrincipalId: fnapp.outputs.functionAppPrincipalId
+    }
 }

@@ -14,6 +14,13 @@ namespace Reservations.Functions
 {
     public class Reservation
     {
+        private readonly ILogger<Reservation> _logger;
+
+        public Reservation(ILogger<Reservation> logger)
+        {
+            _logger = logger;
+        }
+
         [FunctionName("negotiate")]
         public SignalRConnectionInfo Negotiate(
             [HttpTrigger(AuthorizationLevel.Anonymous)]
@@ -28,28 +35,59 @@ namespace Reservations.Functions
         public async Task RunOrchestrator(
             [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
-            Console.WriteLine(context.InstanceId);
-            var makeReservationRequest = context.GetInput<ReservationRequest>();
-
-            await context.CallActivityAsync(nameof(ReserveFlight), makeReservationRequest);
+            var logger = context.CreateReplaySafeLogger(_logger);
             try
             {
-                await context.CallActivityAsync(nameof(ReserveCar), makeReservationRequest);
+                logger.LogDebug("Initiating orchestration...");
+                var makeReservationRequest = context.GetInput<ReservationRequest>();
+
+                logger.LogInformation("Reserving flight...");
+                await context.CallActivityAsync(nameof(ReserveFlight), makeReservationRequest);
+                logger.LogInformation("Successfully reserved flight.");
 
                 try
                 {
-                    await context.CallActivityAsync(nameof(ReserveHotel), makeReservationRequest);
+                    logger.LogInformation("Reserving car rental...");
+                    await context.CallActivityAsync(nameof(ReserveCar), makeReservationRequest);
+                    logger.LogInformation("Successfully reserved car rental.");
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    await context.CallActivityAsync(nameof(CancelCarReservation), makeReservationRequest);
+                    logger.LogError(ex, "Failed to reserve car rental.");
+
+                    logger.LogInformation("Cancelling flight...");
                     await context.CallActivityAsync(nameof(CancelFlightReservation), makeReservationRequest);
+                    logger.LogInformation("Successfully cancelled flight.");
+                    throw;
+                }
+
+                try
+                {
+                    logger.LogInformation("Reserving hotel...");
+                    await context.CallActivityAsync(nameof(ReserveHotel), makeReservationRequest);
+                    logger.LogInformation("Successfully reserved hotel.");
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Failed to reserve hotel.");
+
+                    logger.LogInformation("Cancelling car rental...");
+                    await context.CallActivityAsync(nameof(CancelCarReservation), makeReservationRequest);
+                    logger.LogInformation("Successfully cancelled car rental.");
+
+                    logger.LogInformation("Cancelling flight...");
+                    await context.CallActivityAsync(nameof(CancelFlightReservation), makeReservationRequest);
+                    logger.LogInformation("Successfully cancelled flight.");
+                    throw;
                 }
             }
-            catch (Exception)
+            catch (Exception err)
             {
-                await context.CallActivityAsync(nameof(CancelFlightReservation), makeReservationRequest);
+                logger.LogError(err, "Failed orchestrating reservations.");
+                throw;
             }
+
+            logger.LogInformation("Orchestration completed successfully.");
         }
 
         [FunctionName(nameof(CancelCarReservation))]
@@ -70,10 +108,12 @@ namespace Reservations.Functions
             await CancelReservation(type, reservationRequest, signalRMessages, cancellationToken);
         }
 
-        private async Task CancelReservation(string type, ReservationRequest reservationRequest, IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
+        private async Task CancelReservation(string type, ReservationRequest reservationRequest,
+            IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
         {
             var connectionId = reservationRequest.ConnectionId;
-            await SendMessageAsync(connectionId, signalRMessages, $"Cancelling {type} reservation...", cancellationToken);
+            await SendMessageAsync(connectionId, signalRMessages, $"Cancelling {type} reservation...",
+                cancellationToken);
             await SimulateProcessRequest(type, reservationRequest, signalRMessages, false, cancellationToken);
             await SendMessageAsync(connectionId, signalRMessages, $"{type} reservation cancelled.", cancellationToken);
         }
@@ -87,7 +127,8 @@ namespace Reservations.Functions
             await MakeReservation(type, reservationRequest, signalRMessages, cancellationToken);
         }
 
-        private async Task MakeReservation(string type, ReservationRequest reservationRequest, IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
+        private async Task MakeReservation(string type, ReservationRequest reservationRequest,
+            IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
         {
             var connectionId = reservationRequest.ConnectionId;
             await SendMessageAsync(connectionId, signalRMessages, $"Reserving {type}...", cancellationToken);
@@ -122,17 +163,20 @@ namespace Reservations.Functions
             [SignalR(HubName = "serverless")] IAsyncCollector<SignalRMessage> signalRMessages,
             CancellationToken cancellationToken)
         {
-            var type = "Flight"; await MakeReservation(type, reservationRequest, signalRMessages, cancellationToken);
+            var type = "Flight";
+            await MakeReservation(type, reservationRequest, signalRMessages, cancellationToken);
         }
 
-        private async Task SimulateProcessRequest(string type, ReservationRequest reservationRequest, IAsyncCollector<SignalRMessage> signalRMessages, bool canFail,
+        private async Task SimulateProcessRequest(string type, ReservationRequest reservationRequest,
+            IAsyncCollector<SignalRMessage> signalRMessages, bool canFail,
             CancellationToken cancellationToken = default)
         {
             await Task.Delay(1000, cancellationToken);
             if (canFail && reservationRequest.SimulateFailure == type)
             {
                 var connectionId = reservationRequest.ConnectionId;
-                await SendMessageAsync(connectionId, signalRMessages, $"Error occurred reserving {type}.", cancellationToken);
+                await SendMessageAsync(connectionId, signalRMessages, $"Error occurred reserving {type}.",
+                    cancellationToken);
                 throw new Exception("Simulated error");
             }
         }
