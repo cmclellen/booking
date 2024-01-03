@@ -113,3 +113,5 @@ resource roleAssignmentServiceOwner 'Microsoft.Authorization/roleAssignments@202
     principalType: 'ServicePrincipal'
   }
 }
+
+output ff string = signalRAppServerRoleDefinition.id

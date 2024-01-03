@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - Refactorv45345
     paths:
       - 'iac/**'
       - '.github/workflows/iac.workflow.yml'
