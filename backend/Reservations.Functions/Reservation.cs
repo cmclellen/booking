@@ -59,7 +59,7 @@ namespace Reservations.Functions
                     logger.LogInformation("Cancelling flight...");
                     await context.CallActivityAsync(nameof(CancelFlightReservation), makeReservationRequest);
                     logger.LogInformation("Successfully cancelled flight.");
-                    return;
+                    throw;
                 }
 
                 try
@@ -79,11 +79,15 @@ namespace Reservations.Functions
                     logger.LogInformation("Cancelling flight...");
                     await context.CallActivityAsync(nameof(CancelFlightReservation), makeReservationRequest);
                     logger.LogInformation("Successfully cancelled flight.");
+                    throw;
                 }
             } catch(Exception err)
             {
                 logger.LogError(err, "Failed orchestrating reservations.");
+                throw;
             }
+
+            logger.LogInformation("Orchestration completed successfully.");
         }
 
         [FunctionName(nameof(CancelCarReservation))]
