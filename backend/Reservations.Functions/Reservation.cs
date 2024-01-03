@@ -4,7 +4,6 @@ using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.TagHelpers;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
@@ -81,7 +80,8 @@ namespace Reservations.Functions
                     logger.LogInformation("Successfully cancelled flight.");
                     throw;
                 }
-            } catch(Exception err)
+            }
+            catch (Exception err)
             {
                 logger.LogError(err, "Failed orchestrating reservations.");
                 throw;
@@ -108,10 +108,12 @@ namespace Reservations.Functions
             await CancelReservation(type, reservationRequest, signalRMessages, cancellationToken);
         }
 
-        private async Task CancelReservation(string type, ReservationRequest reservationRequest, IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
+        private async Task CancelReservation(string type, ReservationRequest reservationRequest,
+            IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
         {
             var connectionId = reservationRequest.ConnectionId;
-            await SendMessageAsync(connectionId, signalRMessages, $"Cancelling {type} reservation...", cancellationToken);
+            await SendMessageAsync(connectionId, signalRMessages, $"Cancelling {type} reservation...",
+                cancellationToken);
             await SimulateProcessRequest(type, reservationRequest, signalRMessages, false, cancellationToken);
             await SendMessageAsync(connectionId, signalRMessages, $"{type} reservation cancelled.", cancellationToken);
         }
@@ -125,7 +127,8 @@ namespace Reservations.Functions
             await MakeReservation(type, reservationRequest, signalRMessages, cancellationToken);
         }
 
-        private async Task MakeReservation(string type, ReservationRequest reservationRequest, IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
+        private async Task MakeReservation(string type, ReservationRequest reservationRequest,
+            IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
         {
             var connectionId = reservationRequest.ConnectionId;
             await SendMessageAsync(connectionId, signalRMessages, $"Reserving {type}...", cancellationToken);
@@ -160,17 +163,20 @@ namespace Reservations.Functions
             [SignalR(HubName = "serverless")] IAsyncCollector<SignalRMessage> signalRMessages,
             CancellationToken cancellationToken)
         {
-            var type = "Flight"; await MakeReservation(type, reservationRequest, signalRMessages, cancellationToken);
+            var type = "Flight";
+            await MakeReservation(type, reservationRequest, signalRMessages, cancellationToken);
         }
 
-        private async Task SimulateProcessRequest(string type, ReservationRequest reservationRequest, IAsyncCollector<SignalRMessage> signalRMessages, bool canFail,
+        private async Task SimulateProcessRequest(string type, ReservationRequest reservationRequest,
+            IAsyncCollector<SignalRMessage> signalRMessages, bool canFail,
             CancellationToken cancellationToken = default)
         {
             await Task.Delay(1000, cancellationToken);
             if (canFail && reservationRequest.SimulateFailure == type)
             {
                 var connectionId = reservationRequest.ConnectionId;
-                await SendMessageAsync(connectionId, signalRMessages, $"Error occurred reserving {type}.", cancellationToken);
+                await SendMessageAsync(connectionId, signalRMessages, $"Error occurred reserving {type}.",
+                    cancellationToken);
                 throw new Exception("Simulated error");
             }
         }
