@@ -84,34 +84,25 @@ resource signalR 'Microsoft.SignalRService/signalR@2022-02-01' = {
   }
 }
 
-resource signalRAppServerRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
-  scope: subscription()
-  name: '420fcaa2-552c-430f-98ca-3264be4806c7'
-}
+var roleIds = [
+  '420fcaa2-552c-430f-98ca-3264be4806c7'
+  '7e4f1700-ea5a-4f59-8f37-079cfe29dce3'
+]
 
-resource signalRServiceOwnerRoleDefinition 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = {
+resource signalRRoleDefinitions 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = [for roleId in roleIds: {
   scope: subscription()
-  name: '7e4f1700-ea5a-4f59-8f37-079cfe29dce3'
-}
+  name: roleId
+}]
 
-resource roleAssignmentAppServer 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for (roleId, index) in roleIds: {
   scope: signalR
-  name: guid(signalR.id, functionAppPrincipalId, signalRAppServerRoleDefinition.id)
+  name: guid(signalR.id, functionAppPrincipalId, signalRRoleDefinitions[index].id)
   properties: {
-    roleDefinitionId: signalRAppServerRoleDefinition.id
+    roleDefinitionId: signalRRoleDefinitions[index].id
     principalId: functionAppPrincipalId
     principalType: 'ServicePrincipal'
   }
-}
+}]
 
-resource roleAssignmentServiceOwner 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: signalR
-  name: guid(signalR.id, functionAppPrincipalId, signalRServiceOwnerRoleDefinition.id)
-  properties: {
-    roleDefinitionId: signalRServiceOwnerRoleDefinition.id
-    principalId: functionAppPrincipalId
-    principalType: 'ServicePrincipal'
-  }
-}
-
-output ff string = signalRAppServerRoleDefinition.id
+output gg1 string = signalRRoleDefinitions[0].id
+output gg2 string = signalRRoleDefinitions[1].id
