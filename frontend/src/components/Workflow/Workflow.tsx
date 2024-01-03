@@ -1,19 +1,33 @@
 import { FC, useEffect, useState } from 'react';
-import { WorkflowWrapper } from './Workflow.styled';
+import { Icon, WorkflowWrapper } from './Workflow.styled';
 import axios from 'axios';
 import connectionRef from '../../signalr-context';
 import { Form } from 'react-bootstrap';
+import { v4 as uuid } from 'uuid';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBed, faCar, faPlane } from '@fortawesome/free-solid-svg-icons';
+
+interface IReservationEvent {
+   message: string;
+   type?: string;
+}
 
 interface WorkflowProps { }
 
 const Workflow: FC<WorkflowProps> = () => {
-   const [events, setEvents] = useState<Array<string>>([]);
+   const [events, setEvents] = useState<Array<IReservationEvent>>([]);
+   const [invocationId, setInvocationId] = useState<string>();
    const [simulateFailure, setSimulateFailure] = useState<string | undefined>(undefined);
    const [simulateFailureEnabled, setSimulateFailureEnabled] = useState<boolean>(false);
 
    useEffect(() => {
-      connectionRef!.on('ReservationEvent', (message: string) => {
-         addEvent(message);
+      connectionRef!.on('ReservationEvent', (message: string, type: string, id: string) => {
+         if (id === invocationId) {
+            addEvent({
+               message,
+               type
+            });
+         }
       });
 
       return () => {
@@ -24,15 +38,18 @@ const Workflow: FC<WorkflowProps> = () => {
    const handleBookHoliday = async () => {
       var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
       console.log(`Invoking ${url}...`);
-      var eventList = [`Initiating reservation...`];
+      var eventList: IReservationEvent[] = [{ message: `Initiating reservation...` }];
       setEvents(eventList);
       const connectionId = connectionRef?.connectionId;
-      await axios.post(url, { connectionId, simulateFailure });
-      setEvents([...eventList, `Reservation initiated.`]);
+      var id = uuid();
+      setInvocationId(id);
+      console.log(`started: ${id}`);
+      await axios.post(url, { connectionId, simulateFailure, id });
+      setEvents([...eventList, { message: `Reservation initiated.` }]);
    };
 
-   const addEvent = (message: string) => {
-      setEvents([...events, message]);
+   const addEvent = (ev: IReservationEvent) => {
+      setEvents([...events, ev]);
    };
 
    function onSimulateFailureChanged(e: any) {
@@ -43,9 +60,37 @@ const Workflow: FC<WorkflowProps> = () => {
    function onSimulateFailureEnabledChanged(e: any) {
       var val = e.target.checked;
       setSimulateFailureEnabled(val);
-      if(!val) {
+      if (!val) {
          setSimulateFailure(undefined);
       }
+   }
+
+   function getIcon(type?: string) {
+      if (!type) return null;
+      var attributes = undefined;
+      switch (type) {
+         case 'Car':
+            attributes = {
+               icon: faCar,
+               colorClass: 'text-danger'
+            };
+            break;
+         case 'Hotel':
+            attributes = {
+               icon: faBed,
+               colorClass: 'text-primary'
+            };
+            break;
+         case 'Flight':
+            attributes = {
+               icon: faPlane,
+               colorClass: 'text-success'
+            };
+            break;
+         default:
+            throw new Error(`Unexpected type ${type}.`);
+      }
+      return (<Icon className="me-2"><FontAwesomeIcon icon={attributes.icon} className={attributes?.colorClass} /></Icon>);
    }
 
    return (
@@ -67,20 +112,20 @@ const Workflow: FC<WorkflowProps> = () => {
             />
 
             <div className="d-inline-flex">
-            {['Flight', 'Car', 'Hotel'].map((type, typeIndex) => (
-               <Form.Check
-                  key={`type-${typeIndex}`}
-                  disabled={!simulateFailureEnabled}
-                  inline
-                  type='radio'
-                  label={type}
-                  id={`simulate-failure-${type}`}
-                  name="simulateFailure"
-                  value={type}
-                  checked={simulateFailure === type}
-                  onChange={onSimulateFailureChanged}
-               />
-            ))}
+               {['Flight', 'Car', 'Hotel'].map((type, typeIndex) => (
+                  <Form.Check
+                     key={`type-${typeIndex}`}
+                     disabled={!simulateFailureEnabled}
+                     inline
+                     type='radio'
+                     label={type}
+                     id={`simulate-failure-${type}`}
+                     name="simulateFailure"
+                     value={type}
+                     checked={simulateFailure === type}
+                     onChange={onSimulateFailureChanged}
+                  />
+               ))}
             </div>
          </Form>
 
@@ -92,9 +137,10 @@ const Workflow: FC<WorkflowProps> = () => {
          }
          <ol className="list-group list-group-numbered">
             {events.map((step, index) => (
-               <li key={`event-${index}`} className="list-group-item d-flex justify-content-between align-items-start">
-                  <div className="ms-2 me-auto">
-                     <div className="fw-bold">{step}</div>
+               <li key={`event-${index}`} className="list-group-item d-flex justify-content-between align-items-start p-3 align-items-center">
+                  <div className="ms-2 me-auto d-flex">
+                     {getIcon(step.type)}
+                     <div className="fw-bold">{step.message}</div>
                   </div>
                </li>)
             )}
