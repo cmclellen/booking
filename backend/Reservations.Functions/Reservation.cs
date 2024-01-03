@@ -112,10 +112,10 @@ namespace Reservations.Functions
             IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
         {
             var connectionId = reservationRequest.ConnectionId;
-            await SendMessageAsync(connectionId, signalRMessages, $"Cancelling {type} reservation...",
+            await SendMessageAsync(reservationRequest, signalRMessages, $"Cancelling {type} reservation...",
                 cancellationToken);
             await SimulateProcessRequest(type, reservationRequest, signalRMessages, false, cancellationToken);
-            await SendMessageAsync(connectionId, signalRMessages, $"{type} reservation cancelled.", cancellationToken);
+            await SendMessageAsync(reservationRequest, signalRMessages, $"{type} reservation cancelled.", cancellationToken);
         }
 
         [FunctionName(nameof(ReserveCar))]
@@ -131,21 +131,21 @@ namespace Reservations.Functions
             IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
         {
             var connectionId = reservationRequest.ConnectionId;
-            await SendMessageAsync(connectionId, signalRMessages, $"Reserving {type}...", cancellationToken);
+            await SendMessageAsync(reservationRequest, signalRMessages, $"Reserving {type}...", cancellationToken);
             await SimulateProcessRequest(type, reservationRequest, signalRMessages, true, cancellationToken);
-            await SendMessageAsync(connectionId, signalRMessages, $"{type} reserved.", cancellationToken);
+            await SendMessageAsync(reservationRequest, signalRMessages, $"{type} reserved.", cancellationToken);
         }
 
-        private async Task SendMessageAsync(string connectionId,
+        private async Task SendMessageAsync(ReservationRequest reservationRequest,
             IAsyncCollector<SignalRMessage> signalRMessages,
             string message,
             CancellationToken cancellationToken)
         {
             await signalRMessages.AddAsync(new SignalRMessage
             {
-                ConnectionId = connectionId,
+                ConnectionId = reservationRequest.ConnectionId,
                 Target = "ReservationEvent",
-                Arguments = new[] { message }
+                Arguments = new[] { message, reservationRequest.Id },
             }, cancellationToken);
         }
 
@@ -175,7 +175,7 @@ namespace Reservations.Functions
             if (canFail && reservationRequest.SimulateFailure == type)
             {
                 var connectionId = reservationRequest.ConnectionId;
-                await SendMessageAsync(connectionId, signalRMessages, $"Error occurred reserving {type}.",
+                await SendMessageAsync(reservationRequest, signalRMessages, $"Error occurred reserving {type}.",
                     cancellationToken);
                 throw new Exception("Simulated error");
             }

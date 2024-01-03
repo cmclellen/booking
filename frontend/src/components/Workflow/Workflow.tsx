@@ -3,17 +3,21 @@ import { WorkflowWrapper } from './Workflow.styled';
 import axios from 'axios';
 import connectionRef from '../../signalr-context';
 import { Form } from 'react-bootstrap';
+import { v4 as uuid } from 'uuid';
 
 interface WorkflowProps { }
 
 const Workflow: FC<WorkflowProps> = () => {
    const [events, setEvents] = useState<Array<string>>([]);
+   const [invocationId, setInvocationId] = useState<string>();
    const [simulateFailure, setSimulateFailure] = useState<string | undefined>(undefined);
    const [simulateFailureEnabled, setSimulateFailureEnabled] = useState<boolean>(false);
 
    useEffect(() => {
-      connectionRef!.on('ReservationEvent', (message: string) => {
-         addEvent(message);
+      connectionRef!.on('ReservationEvent', (message: string, id: string) => {
+         if(id === invocationId) {
+            addEvent(message);
+         }
       });
 
       return () => {
@@ -27,7 +31,10 @@ const Workflow: FC<WorkflowProps> = () => {
       var eventList = [`Initiating reservation...`];
       setEvents(eventList);
       const connectionId = connectionRef?.connectionId;
-      await axios.post(url, { connectionId, simulateFailure });
+      var id = uuid();
+      setInvocationId(id);
+      console.log(`started: ${id}`);
+      await axios.post(url, { connectionId, simulateFailure, id });
       setEvents([...eventList, `Reservation initiated.`]);
    };
 
