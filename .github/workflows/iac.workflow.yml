@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - Cleanup
     paths:
       - 'iac/**'
       - '.github/workflows/iac.workflow.yml'
@@ -43,12 +42,3 @@ jobs:
           azcliversion: 2.55.0
           inlineScript: |
             az deployment group create --name deployment-reservation-prd --resource-group Reservation --template-file iac/main.bicep --parameters iac/prd.json
-
-      # - name: deploy
-      #   uses: azure/arm-deploy@v1
-      #   with:
-      #     subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      #     resourceGroupName: ${{ secrets.AZURE_RG }}
-      #     template: iac/main.bicep
-      #     parameters: iac/prd.json
-      #     failOnStdErr: false
