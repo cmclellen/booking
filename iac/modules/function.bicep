@@ -67,4 +67,25 @@ resource functionApp 'Microsoft.Web/sites@2023-01-01' = {
   }
 }
 
-output functionAppPrincipalId string = functionApp.identity.principalId
+var functionAppPrincipalId = functionApp.identity.principalId
+
+var roleIds = [
+  '0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3' // Storage Table Data Contributor
+]
+
+resource storageRoleDefinitions 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = [for roleId in roleIds: {
+  scope: subscription()
+  name: roleId
+}]
+
+resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for (roleId, index) in roleIds: {
+  scope: storageAccount
+  name: guid(storageAccount.id, fnAppName, storageRoleDefinitions[index].id)
+  properties: {
+    roleDefinitionId: storageRoleDefinitions[index].id
+    principalId: functionApp.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}]
+
+output functionAppPrincipalId string = functionAppPrincipalId
