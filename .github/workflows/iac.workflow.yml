@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - Cleanup
     paths:
       - 'iac/**'
       - '.github/workflows/iac.workflow.yml'
