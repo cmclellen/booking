@@ -103,6 +103,3 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
     principalType: 'ServicePrincipal'
   }
 }]
-
-output gg1 string = signalRRoleDefinitions[0].id
-output gg2 string = signalRRoleDefinitions[1].id
