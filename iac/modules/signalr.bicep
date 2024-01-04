@@ -90,6 +90,12 @@ resource signalR 'Microsoft.SignalRService/signalR@2022-02-01' = {
           eventPattern: '*'
           hubPattern: 'serverless'
           urlTemplate: '${functionBaseUrl}/runtime/webhooks/signalr'
+          auth: {
+            managedIdentity: {
+              resource: functionBaseUrl
+            }
+            type: 'SystemAssigned'
+          }
         }
       ]
     }
