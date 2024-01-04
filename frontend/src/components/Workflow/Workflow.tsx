@@ -27,10 +27,9 @@ const Workflow: FC<WorkflowProps> = () => {
             type
          });
       }
-      console.log("eventId: " + eventId);
       setTimeout(() => {
          connectionRef!.invoke("ReservationEventAck", invocationId, eventId).then(() => {
-            console.log('here');
+            console.log('ReservationEventAck message sent.', {invocationId, eventId});
          }).catch(err => console.error("Failed broadcast", err));
       });
    };
@@ -51,7 +50,6 @@ const Workflow: FC<WorkflowProps> = () => {
       const connectionId = connectionRef?.connectionId;
       var id = uuid();
       setInvocationId(id);
-      console.log(`started: ${id}`);
       await axios.post(url, { connectionId, simulateFailure, id });
       setEvents([...eventList, { message: `Reservation initiated.` }]);
    };
