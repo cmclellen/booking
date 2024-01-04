@@ -30,10 +30,11 @@ namespace Reservations.Functions
             {
                 x.UseCredential(CreateTokenCredential());
 
-                var tableServiceEndpoint = configuration.GetValue<string>("TableServiceEndpoint");
-                x.AddTableServiceClient(new Uri(tableServiceEndpoint));
-                var queueServiceEndpoint = configuration.GetValue<string>("QueueServiceEndpoint");
-                x.AddQueueServiceClient(new Uri(queueServiceEndpoint));
+                //var tableServiceEndpoint = configuration.GetValue<string>("TableServiceEndpoint");
+                var azureWebJobsStorage = configuration.GetValue<string>("AzureWebJobsStorage");
+                x.AddTableServiceClient(azureWebJobsStorage);
+                //var queueServiceEndpoint = configuration.GetValue<string>("QueueServiceEndpoint");
+                x.AddQueueServiceClient(azureWebJobsStorage);
             });
 
             services.Scan(scan => scan

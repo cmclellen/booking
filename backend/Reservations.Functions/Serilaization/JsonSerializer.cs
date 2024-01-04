@@ -8,7 +8,7 @@ namespace Reservations.Functions.Serilaization
         string Serialize<T>(T obj);
     }
 
-    public class JsonSerializer
+    public class JsonSerializer : IJsonSerializer
     {
         private readonly JsonSerializerSettings _jsonSerializerSettings;
 

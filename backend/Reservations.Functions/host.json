@@ -12,5 +12,10 @@
       },
       "enableLiveMetricsFilters": true
     }
+  },
+  "extensions": {
+    "queues": {
+      "messageEncoding": "none"
+    }
   }
 }
