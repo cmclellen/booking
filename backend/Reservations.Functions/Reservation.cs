@@ -141,6 +141,7 @@ namespace Reservations.Functions
         [FunctionName(nameof(ReservationEventAck))]
         public async Task ReservationEventAck([SignalRTrigger("serverless", "messages", "ReservationEventAck", parameterNames: new string[] { "message" })] InvocationContext invocationContext, string message)
         {
+            _logger.LogInformation("HERE");
             _logger.LogInformation($"ReservationEventAck \"{message}\" from {invocationContext.ConnectionId}.");
             await Task.CompletedTask;
         }

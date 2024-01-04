@@ -39,10 +39,18 @@ param enableMessagingLogs bool = true
 
 param enableLiveTrace bool = true
 
+param functionBaseUrl string
+
+param workspaceId string
+
+param functionId string
+
 @description('Set the list of origins that should be allowed to make cross-origin calls.')
 param allowedOrigins array = [
   '*'
 ]
+
+var signalRKey  = listKeys('${functionId}/host/default', '2022-03-01').systemKeys.signalr_extension
 
 resource signalR 'Microsoft.SignalRService/signalR@2022-02-01' = {
   name: format(resourceNameFormat, 'sigr', '')
@@ -81,6 +89,39 @@ resource signalR 'Microsoft.SignalRService/signalR@2022-02-01' = {
     cors: {
       allowedOrigins: allowedOrigins
     }
+    upstream: {
+      templates: [
+        {
+          categoryPattern: '*'
+          eventPattern: '*'
+          hubPattern: '*'
+          urlTemplate: '${functionBaseUrl}/runtime/webhooks/signalr?code=${signalRKey}'
+          auth: {
+            type: 'None'
+          }
+        }
+      ]
+    }
+  }
+}
+
+resource diagnosticLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: signalR.name
+  scope: signalR
+  properties: {
+    workspaceId: workspaceId
+    logs: [
+      {
+        categoryGroup: 'allLogs'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
   }
 }
 
