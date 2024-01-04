@@ -94,9 +94,9 @@ resource signalR 'Microsoft.SignalRService/signalR@2022-02-01' = {
           urlTemplate: '${functionBaseUrl}/runtime/webhooks/signalr'
           auth: {
             managedIdentity: {
-              resource: functionBaseUrl
+              resource: '${functionBaseUrl}/blah'
             }
-            type: 'SystemAssigned'
+            type: 'ManagedIdentity'
           }
         }
       ]
