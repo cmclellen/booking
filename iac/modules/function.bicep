@@ -71,6 +71,7 @@ var functionAppPrincipalId = functionApp.identity.principalId
 
 var roleIds = [
   '0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3' // Storage Table Data Contributor
+  '974c5e8b-45b9-4653-ba55-5f855dd0fb88' // Storage Queue Data Contributor
 ]
 
 resource storageRoleDefinitions 'Microsoft.Authorization/roleDefinitions@2022-04-01' existing = [for roleId in roleIds: {

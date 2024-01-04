@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - Makereliable55513
     paths:
       - 'backend/**'
       - '.github/workflows/backend.workflow.yml'
