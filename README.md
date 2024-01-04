@@ -13,6 +13,9 @@ The UI is a React SPA that interfaces with an Azure Function App. The user initi
 
 ### Local Development
 1. You'll need to install & run the [SignalR emulator](https://learn.microsoft.com/en-au/azure/azure-signalr/signalr-howto-emulator).
+
+    * Ensure to `UrlTemplate` property is set correctly within the `settings.json` file.
+    * Start the emulator by running `asrs-emulator start`
 1. Open the **Reservation** solution (found in the **Backend** folder) and  solution up in Visual Studio and run the project.
 1. Open the **Frontend** folder in VSCode and run `npm run dev`.
 1. You'll also need to login to Azure via the Azure CLI by running the following (replacing TENANT_ID with your tenant ID):
