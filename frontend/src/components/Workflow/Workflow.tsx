@@ -5,7 +5,7 @@ import connectionRef from '../../signalr-context';
 import { Form } from 'react-bootstrap';
 import { v4 as uuid } from 'uuid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBed, faCar, faPlane } from '@fortawesome/free-solid-svg-icons';
+import { faBed, faCar, faPersonWalking, faPlane } from '@fortawesome/free-solid-svg-icons';
 
 interface IReservationEvent {
    message: string;
@@ -135,7 +135,13 @@ const Workflow: FC<WorkflowProps> = () => {
             <h3 className="text-muted mb-0 mb-md-2">Event Log</h3>
             {!!invocationId && (<small className="text-muted ms-md-3">Invocation ID: {invocationId}</small>)}
          </div>
-         
+
+         {!!invocationId && (
+            <div className="alert alert-warning alert-dismissible fade show" role="alert">
+               Please allow for a few seconds before the magic begins - the system has been given a nudge to wake up <FontAwesomeIcon icon={faPersonWalking}></FontAwesomeIcon>
+               <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>)}
+
          {events.length == 0 &&
             <div>No event(s) have been logged just yet.</div>
          }
