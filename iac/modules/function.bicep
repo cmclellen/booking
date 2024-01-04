@@ -88,5 +88,6 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
   }
 }]
 
+output signalRKey string = functionApp.listkeys().systemkeys.signalr_extension
 output functionAppPrincipalId string = functionAppPrincipalId
 output functionBaseUrl string = 'https://${functionApp.properties.defaultHostName}'

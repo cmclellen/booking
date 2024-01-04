@@ -43,6 +43,8 @@ param functionBaseUrl string
 
 param workspaceId string
 
+param signalRKey string
+
 @description('Set the list of origins that should be allowed to make cross-origin calls.')
 param allowedOrigins array = [
   '*'
@@ -90,13 +92,10 @@ resource signalR 'Microsoft.SignalRService/signalR@2022-02-01' = {
         {
           categoryPattern: '*'
           eventPattern: '*'
-          hubPattern: 'serverless'
-          urlTemplate: '${functionBaseUrl}/runtime/webhooks/signalr'
+          hubPattern: '*'
+          urlTemplate: '${functionBaseUrl}/runtime/webhooks/signalr?code=${signalRKey}'
           auth: {
-            managedIdentity: {
-              resource: functionBaseUrl
-            }
-            type: 'ManagedIdentity'
+            type: 'None'
           }
         }
       ]

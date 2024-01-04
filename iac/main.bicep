@@ -38,5 +38,6 @@ module signalr './modules/signalr.bicep' = {
         functionAppPrincipalId: fnapp.outputs.functionAppPrincipalId
         functionBaseUrl: fnapp.outputs.functionBaseUrl
         workspaceId: monitoring.outputs.workspaceId
+        signalRKey: fnapp.outputs.signalRKey
     }
 }
