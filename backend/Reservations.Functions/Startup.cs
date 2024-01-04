@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
@@ -14,6 +15,13 @@ namespace Reservations.Functions
 {
     public class Startup : FunctionsStartup
     {
+        //public override void ConfigureAppConfiguration(IFunctionsConfigurationBuilder builder)
+        //{
+        //    builder.ConfigurationBuilder
+        //        .AddEnvironmentVariables()
+        //        .AddUserSecrets(Assembly.GetExecutingAssembly(), true);
+        //}
+
         public override void Configure(IFunctionsHostBuilder builder)
         {
             var configuration = builder.GetContext().Configuration;

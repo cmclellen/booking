@@ -20,15 +20,24 @@ const Workflow: FC<WorkflowProps> = () => {
    const [simulateFailure, setSimulateFailure] = useState<string | undefined>(undefined);
    const [simulateFailureEnabled, setSimulateFailureEnabled] = useState<boolean>(false);
 
-   useEffect(() => {
-      connectionRef!.on('ReservationEvent', (message: string, type: string, id: string) => {
-         if (id === invocationId) {
-            addEvent({
-               message,
-               type
-            });
-         }
+   const onReservationEvent = async(message: string, type: string, id: string, eventId: string) => {
+      if (id === invocationId) {
+         addEvent({
+            message,
+            type
+         });
+      }
+      console.log("eventId: " + eventId);
+      setTimeout(() => {
+         //connectionRef!.invoke("OnConnected", ["some message"]).then(() => {});
+         connectionRef!.invoke("ReservationEventAck", "some message").then(() => {
+            console.log('here');
+         }).catch(err => console.error("Failed broadcast", err));
       });
+   };
+
+   useEffect(() => {
+      connectionRef!.on('ReservationEvent', onReservationEvent);
 
       return () => {
          connectionRef!.off('ReservationEvent');

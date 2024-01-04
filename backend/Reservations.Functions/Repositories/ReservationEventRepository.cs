@@ -1,14 +1,14 @@
-﻿using System.Globalization;
+﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
-using Reservations.Functions.Utils;
 
 namespace Reservations.Functions.Repositories
 {
     public interface IReservationEventRepository
     {
-        Task AddAsync(string connectionId, string invocationId, string message, CancellationToken cancellationToken);
+        Task<Guid> AddAsync(string connectionId, string invocationId, string message,
+            CancellationToken cancellationToken);
     }
 
     public class ReservationEventRepository : IReservationEventRepository
@@ -33,18 +33,21 @@ namespace Reservations.Functions.Repositories
             return _tableClient;
         }
 
-        public async Task AddAsync(string connectionId, string invocationId, string message,
+        public async Task<Guid> AddAsync(string connectionId, string invocationId, string message,
             CancellationToken cancellationToken)
         {
             var tableClient = await GetTableClientAsync(cancellationToken);
-            var tableEntity = new TableEntity($"{connectionId}_{invocationId}",
-                DateTimeProvider.Current.UtcNow.ToString("o", CultureInfo.InvariantCulture))
+
+            var id = Guid.NewGuid();
+            var tableEntity = new TableEntity($"{connectionId}_{invocationId}", id.ToString("D"))
             {
                 { "Type", "type" },
                 { "Message", message },
                 { "Acknowledged", false }
             };
             await tableClient.AddEntityAsync(tableEntity, cancellationToken);
+
+            return id;
         }
     }
 }
