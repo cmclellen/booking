@@ -28,9 +28,12 @@ namespace Reservations.Functions
             var services = builder.Services;
             services.AddAzureClients(x =>
             {
+                x.UseCredential(CreateTokenCredential());
+
                 var tableServiceEndpoint = configuration.GetValue<string>("TableServiceEndpoint");
                 x.AddTableServiceClient(new Uri(tableServiceEndpoint));
-                x.UseCredential(CreateTokenCredential());
+                var queueServiceEndpoint = configuration.GetValue<string>("QueueServiceEndpoint");
+                x.AddQueueServiceClient(new Uri(queueServiceEndpoint));
             });
 
             services.Scan(scan => scan

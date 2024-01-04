@@ -11,6 +11,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.Extensions.Logging;
 using Reservations.Functions.Repositories;
+using Reservations.Functions.Utils;
 
 namespace Reservations.Functions
 {
@@ -18,13 +19,16 @@ namespace Reservations.Functions
     {
         private readonly ILogger<Reservation> _logger;
         private readonly IReservationEventRepository _reservationEventRepository;
+        private readonly IEventPublisher _eventPublisher;
 
         public Reservation(
             ILogger<Reservation> logger,
-            IReservationEventRepository reservationEventRepository)
+            IReservationEventRepository reservationEventRepository,
+            IEventPublisher eventPublisher)
         {
             _logger = logger;
             _reservationEventRepository = reservationEventRepository;
+            _eventPublisher = eventPublisher;
         }
 
         [FunctionName("negotiate")]
@@ -34,7 +38,6 @@ namespace Reservations.Functions
             [SignalRConnectionInfo(HubName = "serverless")]
             SignalRConnectionInfo connectionInfo)
         {
-            //return Negotiate(req.Headers["x-ms-signalr-user-id"]);
             return connectionInfo;
         }
 
@@ -169,6 +172,14 @@ namespace Reservations.Functions
             string message,
             CancellationToken cancellationToken)
         {
+            var @event = new ReservationEvent
+            {
+                ConnectionId = reservationRequest.ConnectionId,
+                EventId = reservationRequest.Id, 
+                Message = message
+            };
+            await _eventPublisher.PublishAsync(@event, cancellationToken);
+
             var eventId = await _reservationEventRepository.AddAsync(reservationRequest.ConnectionId, reservationRequest.Id, message,
                 cancellationToken);
             await signalRMessages.AddAsync(new SignalRMessage
