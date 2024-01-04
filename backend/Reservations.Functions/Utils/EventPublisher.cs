@@ -1,8 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Queues;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using Reservations.Functions.Serilaization;
 
 namespace Reservations.Functions.Utils
@@ -34,6 +32,7 @@ namespace Reservations.Functions.Utils
                 _queueClient = await _queueServiceClient.CreateQueueAsync(_queueName, null, cancellationToken);
                 await _queueClient.CreateIfNotExistsAsync(null, cancellationToken);
             }
+
             return _queueClient;
         }
 
