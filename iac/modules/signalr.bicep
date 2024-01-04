@@ -111,12 +111,14 @@ resource diagnosticLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-previe
     workspaceId: workspaceId
     logs: [
       {
+        categoryGroup: 'allLogs'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
         category: 'AllMetrics'
         enabled: true
-        retentionPolicy: {
-          days: 30
-          enabled: true 
-        }
       }
     ]
   }
