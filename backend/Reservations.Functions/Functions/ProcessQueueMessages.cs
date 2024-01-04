@@ -56,7 +56,7 @@ namespace Reservations.Functions.Functions
         {
             Guard.Against.Null(reservationAckEvent, nameof(reservationAckEvent));
             
-            _logger.LogInformation("ProcessReservationAckEvent");
+            _logger.LogInformation($"ProcessReservationAckEvent: ConnectionId={reservationAckEvent.ConnectionId}; InvocationId={reservationAckEvent.InvocationId}; EventId={reservationAckEvent.EventId}");
 
             await Task.CompletedTask;
         }
