@@ -39,6 +39,8 @@ param enableMessagingLogs bool = true
 
 param enableLiveTrace bool = true
 
+param functionBaseUrl string
+
 @description('Set the list of origins that should be allowed to make cross-origin calls.')
 param allowedOrigins array = [
   '*'
@@ -80,6 +82,16 @@ resource signalR 'Microsoft.SignalRService/signalR@2022-02-01' = {
     ]
     cors: {
       allowedOrigins: allowedOrigins
+    }
+    upstream: {
+      templates: [
+        {
+          categoryPattern: '*'
+          eventPattern: '*'
+          hubPattern: 'serverless'
+          urlTemplate: '${functionBaseUrl}/runtime/webhooks/signalr'
+        }
+      ]
     }
   }
 }

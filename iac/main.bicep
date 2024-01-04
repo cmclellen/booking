@@ -27,5 +27,6 @@ module signalr './modules/signalr.bicep' = {
         resourceNameFormat: resourceNameFormat
         tags: tags
         functionAppPrincipalId: fnapp.outputs.functionAppPrincipalId
+        functionBaseUrl: fnapp.outputs.functionBaseUrl
     }
 }
