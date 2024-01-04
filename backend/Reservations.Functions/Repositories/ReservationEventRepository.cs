@@ -9,6 +9,9 @@ namespace Reservations.Functions.Repositories
     {
         Task<Guid> AddAsync(string connectionId, string invocationId, string message,
             CancellationToken cancellationToken);
+
+        Task AcknowledgeAsync(string connectionId, string invocationId, string eventId,
+            CancellationToken cancellationToken);
     }
 
     public class ReservationEventRepository : IReservationEventRepository
@@ -33,7 +36,7 @@ namespace Reservations.Functions.Repositories
             return _tableClient;
         }
 
-        public async Task<Guid> AddAsync(string connectionId, string invocationId, string message,
+        public async Task<Guid> AddAsync(string connectionId, string invocationId, string message, 
             CancellationToken cancellationToken)
         {
             var tableClient = await GetTableClientAsync(cancellationToken);
@@ -48,6 +51,18 @@ namespace Reservations.Functions.Repositories
             await tableClient.AddEntityAsync(tableEntity, cancellationToken);
 
             return id;
+        }
+
+        public async Task AcknowledgeAsync(string connectionId, string invocationId, string eventId,
+            CancellationToken cancellationToken)
+        {
+            var tableClient = await GetTableClientAsync(cancellationToken);
+
+            var tableEntity = new TableEntity($"{connectionId}_{invocationId}", eventId)
+            {
+                { "Acknowledged", true }
+            };
+            await tableClient.UpsertEntityAsync(tableEntity, TableUpdateMode.Merge, cancellationToken);
         }
     }
 }

@@ -25,40 +25,46 @@ namespace Reservations.Functions.Functions
 
         [FunctionName(nameof(ProcessReservationEvents))]
         public async Task ProcessReservationEvents(
-            [QueueTrigger("reservation-events")] ReservationEvent reservationEvent, 
-            [SignalR(HubName = Constants.SignalRHubName)] IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
+            [QueueTrigger("reservation-events")] ReservationEvent reservationEvent,
+            [SignalR(HubName = Constants.SignalRHubName)]
+            IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
         {
             Guard.Against.Null(reservationEvent, nameof(reservationEvent));
 
             _logger.LogDebug("Adding event to table...");
             var eventId = await _reservationEventRepository.AddAsync(reservationEvent.ConnectionId,
-                reservationEvent.InvocationId, reservationEvent.Message,
-                cancellationToken);
+                reservationEvent.InvocationId, reservationEvent.Message, cancellationToken);
             _logger.LogInformation("Successfully added event to table.");
 
-            _logger.LogDebug("Sending SignalR messages...");
+            _logger.LogDebug("Sending SignalR message...");
             await signalRMessages.AddAsync(new SignalRMessage
             {
                 ConnectionId = reservationEvent.ConnectionId,
                 Target = "ReservationEvent",
-                Arguments = new object[] { reservationEvent.Message, reservationEvent.Type, reservationEvent.InvocationId, eventId.ToString("D") }
+                Arguments = new object[]
+                {
+                    reservationEvent.Message, reservationEvent.Type, reservationEvent.InvocationId,
+                    eventId.ToString("D")
+                }
             }, cancellationToken);
 
-            _logger.LogInformation("Successfully sent SignalR messages.");
-
-            await Task.CompletedTask;
+            _logger.LogInformation("Successfully sent SignalR message.");
         }
 
         [FunctionName(nameof(ProcessReservationAckEvents))]
         public async Task ProcessReservationAckEvents(
-            [QueueTrigger("reservation-ack-events")] ReservationAckEvent reservationAckEvent,
-            [SignalR(HubName = Constants.SignalRHubName)] IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
+            [QueueTrigger("reservation-ack-events")]
+            ReservationAckEvent reservationAckEvent,
+            CancellationToken cancellationToken)
         {
             Guard.Against.Null(reservationAckEvent, nameof(reservationAckEvent));
-            
-            _logger.LogInformation($"ProcessReservationAckEvent: ConnectionId={reservationAckEvent.ConnectionId}; InvocationId={reservationAckEvent.InvocationId}; EventId={reservationAckEvent.EventId}");
 
-            await Task.CompletedTask;
+            _logger.LogDebug("Updating event to acknowledged {InvocationId} {EventId}...",
+                reservationAckEvent.InvocationId, reservationAckEvent.EventId);
+            await _reservationEventRepository.AcknowledgeAsync(reservationAckEvent.ConnectionId,
+                reservationAckEvent.InvocationId, reservationAckEvent.EventId, cancellationToken);
+            _logger.LogInformation("Successfully updated event to acknowledged {InvocationId} {EventId}.",
+                reservationAckEvent.InvocationId, reservationAckEvent.EventId);
         }
     }
 }
