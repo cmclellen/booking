@@ -50,7 +50,7 @@ param allowedOrigins array = [
   '*'
 ]
 
-var signalRKey  = listKeys(resourceId('${functionId}/host', 'fn-res-aueast', 'default'), '2022-03-01').systemKeys.signalr_extension
+var signalRKey  = listKeys('${functionId}/host/default', '2022-03-01').systemKeys.signalr_extension
 
 resource signalR 'Microsoft.SignalRService/signalR@2022-02-01' = {
   name: format(resourceNameFormat, 'sigr', '')
