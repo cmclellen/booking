@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
@@ -33,6 +34,7 @@ namespace Reservations.Functions
             [SignalRConnectionInfo(HubName = "serverless")]
             SignalRConnectionInfo connectionInfo)
         {
+            //return Negotiate(req.Headers["x-ms-signalr-user-id"]);
             return connectionInfo;
         }
 
@@ -123,6 +125,26 @@ namespace Reservations.Functions
                 cancellationToken);
         }
 
+        [FunctionName(nameof(OnConnected))]
+        public async Task OnConnected([SignalRTrigger("serverless", "connections", "connected")] InvocationContext invocationContext, ILogger logger)
+        {
+            logger.LogInformation($"{invocationContext.ConnectionId} has connected");
+            await Task.CompletedTask;
+        }
+
+        [FunctionName(nameof(OnDisconnected))]
+        public async Task OnDisconnected([SignalRTrigger("serverless", "connections", "disconnected")] InvocationContext invocationContext)
+        {
+            await Task.CompletedTask;
+        }
+
+        [FunctionName(nameof(ReservationEventAck))]
+        public async Task ReservationEventAck([SignalRTrigger("serverless", "messages", "ReservationEventAck", parameterNames: new string[] { "message" })] InvocationContext invocationContext, string message)
+        {
+            _logger.LogInformation($"ReservationEventAck \"{message}\" from {invocationContext.ConnectionId}.");
+            await Task.CompletedTask;
+        }
+
         [FunctionName(nameof(ReserveCar))]
         public async Task ReserveCar([ActivityTrigger] ReservationRequest reservationRequest, ILogger log,
             [SignalR(HubName = "serverless")] IAsyncCollector<SignalRMessage> signalRMessages,
@@ -146,13 +168,13 @@ namespace Reservations.Functions
             string message,
             CancellationToken cancellationToken)
         {
-            await _reservationEventRepository.AddAsync(reservationRequest.ConnectionId, reservationRequest.Id, message,
+            var eventId = await _reservationEventRepository.AddAsync(reservationRequest.ConnectionId, reservationRequest.Id, message,
                 cancellationToken);
             await signalRMessages.AddAsync(new SignalRMessage
             {
                 ConnectionId = reservationRequest.ConnectionId,
                 Target = "ReservationEvent",
-                Arguments = new[] { message, type, reservationRequest.Id }
+                Arguments = new object[] { message, type, reservationRequest.Id, eventId.ToString("D") }
             }, cancellationToken);
         }
 
