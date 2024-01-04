@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - MakeReeliab23243
     paths:
       - 'backend/**'
       - '.github/workflows/backend.workflow.yml'

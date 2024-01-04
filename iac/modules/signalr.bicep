@@ -41,6 +41,8 @@ param enableLiveTrace bool = true
 
 param functionBaseUrl string
 
+param workspaceId string
+
 @description('Set the list of origins that should be allowed to make cross-origin calls.')
 param allowedOrigins array = [
   '*'
@@ -99,6 +101,24 @@ resource signalR 'Microsoft.SignalRService/signalR@2022-02-01' = {
         }
       ]
     }
+  }
+}
+
+resource diagnosticLogs 'Microsoft.Insights/diagnosticSettings@2021-05-01-preview' = {
+  name: signalR.name
+  scope: signalR
+  properties: {
+    workspaceId: workspaceId
+    logs: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+        retentionPolicy: {
+          days: 30
+          enabled: true 
+        }
+      }
+    ]
   }
 }
 

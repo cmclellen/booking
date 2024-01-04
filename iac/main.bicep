@@ -11,6 +11,15 @@ param tags object = {
 
 var resourceNameFormat = '{0}-res{1}-aueast'
 
+module monitoring './modules/monitoring.bicep' = {
+  name: 'Monitoring'
+  params: {
+      location: location
+      resourceNameFormat: resourceNameFormat
+      tags: tags
+  }
+}
+
 module fnapp './modules/function.bicep' = {
   name: 'FnApp'
   params: {
@@ -28,5 +37,6 @@ module signalr './modules/signalr.bicep' = {
         tags: tags
         functionAppPrincipalId: fnapp.outputs.functionAppPrincipalId
         functionBaseUrl: fnapp.outputs.functionBaseUrl
+        workspaceId: monitoring.outputs.workspaceId
     }
 }
