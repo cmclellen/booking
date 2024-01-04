@@ -4,27 +4,30 @@ using System.Net.Http.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.Extensions.Logging;
 using Reservations.Functions.Repositories;
+using Reservations.Functions.Utils;
 
-namespace Reservations.Functions
+namespace Reservations.Functions.Functions
 {
-    public class Reservation
+    public class ReservationOrchestrator
     {
-        private readonly ILogger<Reservation> _logger;
+        private readonly ILogger<ReservationOrchestrator> _logger;
         private readonly IReservationEventRepository _reservationEventRepository;
+        private readonly IEventPublisher _eventPublisher;
 
-        public Reservation(
-            ILogger<Reservation> logger,
-            IReservationEventRepository reservationEventRepository)
+        public ReservationOrchestrator(
+            ILogger<ReservationOrchestrator> logger,
+            IReservationEventRepository reservationEventRepository,
+            IEventPublisher eventPublisher)
         {
             _logger = logger;
             _reservationEventRepository = reservationEventRepository;
+            _eventPublisher = eventPublisher;
         }
 
         [FunctionName("negotiate")]
@@ -34,11 +37,10 @@ namespace Reservations.Functions
             [SignalRConnectionInfo(HubName = "serverless")]
             SignalRConnectionInfo connectionInfo)
         {
-            //return Negotiate(req.Headers["x-ms-signalr-user-id"]);
             return connectionInfo;
         }
 
-        [FunctionName(nameof(Reservation))]
+        [FunctionName(nameof(ReservationOrchestrator))]
         public async Task RunOrchestrator(
             [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
@@ -126,20 +128,25 @@ namespace Reservations.Functions
         }
 
         [FunctionName(nameof(OnConnected))]
-        public async Task OnConnected([SignalRTrigger("serverless", "connections", "connected")] InvocationContext invocationContext, ILogger logger)
+        public async Task OnConnected(
+            [SignalRTrigger("serverless", "connections", "connected")] InvocationContext invocationContext,
+            ILogger logger)
         {
             logger.LogInformation($"{invocationContext.ConnectionId} has connected");
             await Task.CompletedTask;
         }
 
         [FunctionName(nameof(OnDisconnected))]
-        public async Task OnDisconnected([SignalRTrigger("serverless", "connections", "disconnected")] InvocationContext invocationContext)
+        public async Task OnDisconnected(
+            [SignalRTrigger("serverless", "connections", "disconnected")] InvocationContext invocationContext)
         {
             await Task.CompletedTask;
         }
 
         [FunctionName(nameof(ReservationEventAck))]
-        public async Task ReservationEventAck([SignalRTrigger("serverless", "messages", "ReservationEventAck", parameterNames: new string[] { "message" })] InvocationContext invocationContext, string message)
+        public async Task ReservationEventAck(
+            [SignalRTrigger("serverless", "messages", "ReservationEventAck", new string[] { "message" })]
+            InvocationContext invocationContext, string message)
         {
             _logger.LogInformation("HERE");
             _logger.LogInformation($"ReservationEventAck \"{message}\" from {invocationContext.ConnectionId}.");
@@ -169,7 +176,16 @@ namespace Reservations.Functions
             string message,
             CancellationToken cancellationToken)
         {
-            var eventId = await _reservationEventRepository.AddAsync(reservationRequest.ConnectionId, reservationRequest.Id, message,
+            var @event = new ReservationEvent
+            {
+                ConnectionId = reservationRequest.ConnectionId,
+                EventId = reservationRequest.Id,
+                Message = message
+            };
+            await _eventPublisher.PublishAsync(@event, cancellationToken);
+
+            var eventId = await _reservationEventRepository.AddAsync(reservationRequest.ConnectionId,
+                reservationRequest.Id, message,
                 cancellationToken);
             await signalRMessages.AddAsync(new SignalRMessage
             {
@@ -218,7 +234,7 @@ namespace Reservations.Functions
             ILogger log)
         {
             var makeReservationRequest = await req.Content!.ReadFromJsonAsync<ReservationRequest>();
-            var instanceId = await starter.StartNewAsync(nameof(Reservation), makeReservationRequest);
+            var instanceId = await starter.StartNewAsync(nameof(ReservationOrchestrator), makeReservationRequest);
             log.LogInformation("Started orchestration with ID = '{instanceId}'.", instanceId);
             return starter.CreateCheckStatusResponse(req, instanceId);
         }

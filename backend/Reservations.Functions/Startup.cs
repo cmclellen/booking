@@ -1,6 +1,4 @@
-﻿using System;
-using System.Reflection;
-using Azure.Core;
+﻿using Azure.Core;
 using Azure.Identity;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Azure;
@@ -28,9 +26,11 @@ namespace Reservations.Functions
             var services = builder.Services;
             services.AddAzureClients(x =>
             {
-                var tableServiceEndpoint = configuration.GetValue<string>("TableServiceEndpoint");
-                x.AddTableServiceClient(new Uri(tableServiceEndpoint));
                 x.UseCredential(CreateTokenCredential());
+
+                var azureWebJobsStorage = configuration.GetValue<string>("AzureWebJobsStorage");
+                x.AddTableServiceClient(azureWebJobsStorage);
+                x.AddQueueServiceClient(azureWebJobsStorage);
             });
 
             services.Scan(scan => scan

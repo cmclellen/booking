@@ -147,7 +147,7 @@ const Workflow: FC<WorkflowProps> = () => {
 
          {!!invocationId && (
             <div className="alert alert-warning alert-dismissible fade show" role="alert">
-               Please allow for a few seconds before the magic begins - the system has been given a nudge to wake up <FontAwesomeIcon icon={faPersonWalking}></FontAwesomeIcon>
+               The system has been snoozing...please allow a couple seconds for it to wake up <FontAwesomeIcon icon={faPersonWalking}></FontAwesomeIcon>
                <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>)}
 
