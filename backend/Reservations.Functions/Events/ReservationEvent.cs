@@ -1,4 +1,4 @@
-namespace Reservations.Functions;
+namespace Reservations.Functions.Events;
 
 public class ReservationEvent
 {

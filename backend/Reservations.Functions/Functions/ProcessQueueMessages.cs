@@ -4,26 +4,27 @@ using Ardalis.GuardClauses;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.Extensions.Logging;
+using Reservations.Functions.Events;
 using Reservations.Functions.Repositories;
 using Reservations.Functions.Utils;
 
 namespace Reservations.Functions.Functions
 {
-    public class ProcessReservationEvent
+    public class ProcessQueueMessages
     {
-        private readonly ILogger<ProcessReservationEvent> _logger;
+        private readonly ILogger<ProcessQueueMessages> _logger;
         private readonly IReservationEventRepository _reservationEventRepository;
 
-        public ProcessReservationEvent(
-            ILogger<ProcessReservationEvent> logger,
+        public ProcessQueueMessages(
+            ILogger<ProcessQueueMessages> logger,
             IReservationEventRepository reservationEventRepository)
         {
             _logger = logger;
             _reservationEventRepository = reservationEventRepository;
         }
 
-        [FunctionName(nameof(ProcessReservationEvent))]
-        public async Task Run(
+        [FunctionName(nameof(ProcessReservationEvents))]
+        public async Task ProcessReservationEvents(
             [QueueTrigger("reservation-events")] ReservationEvent reservationEvent, 
             [SignalR(HubName = Constants.SignalRHubName)] IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
         {
@@ -44,6 +45,18 @@ namespace Reservations.Functions.Functions
             }, cancellationToken);
 
             _logger.LogInformation("Successfully sent SignalR messages.");
+
+            await Task.CompletedTask;
+        }
+
+        [FunctionName(nameof(ProcessReservationAckEvents))]
+        public async Task ProcessReservationAckEvents(
+            [QueueTrigger("reservation-ack-events")] ReservationAckEvent reservationAckEvent,
+            [SignalR(HubName = Constants.SignalRHubName)] IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
+        {
+            Guard.Against.Null(reservationAckEvent, nameof(reservationAckEvent));
+            
+            _logger.LogInformation("ProcessReservationAckEvent");
 
             await Task.CompletedTask;
         }

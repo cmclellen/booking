@@ -9,6 +9,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.Extensions.Logging;
+using Reservations.Functions.Events;
 using Reservations.Functions.Utils;
 
 namespace Reservations.Functions.Functions
@@ -144,11 +145,13 @@ namespace Reservations.Functions.Functions
         [FunctionName(nameof(ReservationEventAck))]
         public async Task ReservationEventAck(
             [SignalRTrigger(Constants.SignalRHubName, "messages", "ReservationEventAck", new string[] { "message" })]
-            InvocationContext invocationContext, string message)
+            InvocationContext invocationContext, string message, CancellationToken cancellationToken)
         {
-            _logger.LogInformation("HERE");
-            _logger.LogInformation($"ReservationEventAck \"{message}\" from {invocationContext.ConnectionId}.");
-            await Task.CompletedTask;
+            var @event = new ReservationAckEvent
+            {
+                
+            };
+            await _eventPublisher.PublishAsync(@event, cancellationToken);
         }
 
         [FunctionName(nameof(ReserveCar))]
