@@ -43,13 +43,14 @@ param functionBaseUrl string
 
 param workspaceId string
 
+param functionId string
+
 @description('Set the list of origins that should be allowed to make cross-origin calls.')
 param allowedOrigins array = [
   '*'
 ]
 
-var signalRKey  = listKeys(resourceId('Microsoft.Web/sites/host', 'fn-res-aueast', 'default'), '2022-03-01').systemkeys.signalr_extension
-
+var signalRKey  = listKeys(resourceId('${functionId}/host', 'fn-res-aueast', 'default'), '2022-03-01').systemKeys.signalr_extension
 
 resource signalR 'Microsoft.SignalRService/signalR@2022-02-01' = {
   name: format(resourceNameFormat, 'sigr', '')

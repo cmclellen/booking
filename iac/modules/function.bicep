@@ -90,3 +90,4 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = [
 
 output functionAppPrincipalId string = functionAppPrincipalId
 output functionBaseUrl string = 'https://${functionApp.properties.defaultHostName}'
+output functionId string = functionApp.id
