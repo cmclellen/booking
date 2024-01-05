@@ -1,16 +1,24 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { Icon, WorkflowWrapper } from './Workflow.styled';
 import axios from 'axios';
-import connectionRef from '../../signalr-context';
 import { Form } from 'react-bootstrap';
 import { v4 as uuid } from 'uuid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBed, faCar, faPersonWalking, faPlane } from '@fortawesome/free-solid-svg-icons';
+import { signalRState } from '../../signalr-context';
 
 interface IReservationEvent {
    message: string;
    type?: string;
+   createdAtUtc: Date
+   eventId?: string
 }
+
+let minDate = new Date(-8640000000000000);
+let counter = 0;
+const createReservationEvent = (message: string): IReservationEvent => {
+   return { message, createdAtUtc: new Date(minDate.getTime() + counter) };
+};
 
 interface WorkflowProps { }
 
@@ -19,46 +27,50 @@ const Workflow: FC<WorkflowProps> = () => {
    const [invocationId, setInvocationId] = useState<string>();
    const [simulateFailure, setSimulateFailure] = useState<string | undefined>(undefined);
    const [simulateFailureEnabled, setSimulateFailureEnabled] = useState<boolean>(false);
+   const [canReserve, setCanReserve] = useState<boolean>(false);
+   const eventList = useRef<Array<IReservationEvent>>([]);
 
-   const onReservationEvent = async(message: string, type: string, id: string, eventId: string) => {
-      if (id === invocationId) {
-         addEvent({
-            message,
-            type
-         });
+   const onReservationEvent = useCallback(async(message: string, type: string, inboundInvocationId: string, eventId: string, createdAtUtc: Date) => {
+      const isApplicable = inboundInvocationId === invocationId;
+      if (isApplicable) {
+         var ev: IReservationEvent = { message, type, createdAtUtc, eventId };
+         eventList.current.push(ev);
+         setSortedEvents();
       }
-      console.log("eventId: " + eventId);
-      setTimeout(() => {
-         //connectionRef!.invoke("OnConnected", ["some message"]).then(() => {});
-         connectionRef!.invoke("ReservationEventAck", "some message").then(() => {
-            console.log('here');
-         }).catch(err => console.error("Failed broadcast", err));
-      });
-   };
+      await signalRState.sendReservationEventAck(invocationId!, eventId);
+   }, [events, invocationId]);
 
    useEffect(() => {
-      connectionRef!.on('ReservationEvent', onReservationEvent);
-
+      signalRState.onReservationEvent(onReservationEvent);
+      signalRState.onConnected(_ => {
+         setCanReserve(true);
+      });
       return () => {
-         connectionRef!.off('ReservationEvent');
+         signalRState.offReservationEvent();
       }
-   });
+   }, [events, invocationId]);
 
    const handleBookHoliday = async () => {
       var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
       console.log(`Invoking ${url}...`);
-      var eventList: IReservationEvent[] = [{ message: `Initiating reservation...` }];
-      setEvents(eventList);
-      const connectionId = connectionRef?.connectionId;
+      
+      eventList.current = [createReservationEvent(`Initiating reservation...`)];
+      setSortedEvents();
+      const connectionId = signalRState.connectionId;
+      console.log(`connectionId: ${connectionId}`);
       var id = uuid();
       setInvocationId(id);
-      console.log(`started: ${id}`);
       await axios.post(url, { connectionId, simulateFailure, id });
-      setEvents([...eventList, { message: `Reservation initiated.` }]);
+      eventList.current.push(createReservationEvent(`Reservation initiated.`));
+      setSortedEvents();
    };
 
-   const addEvent = (ev: IReservationEvent) => {
-      setEvents([...events, ev]);
+   const setSortedEvents = () => {
+      var sortedEventList: Array<IReservationEvent> = eventList.current;
+      sortedEventList = [...sortedEventList].sort((a: IReservationEvent, b: IReservationEvent) => {
+         return a.createdAtUtc < b.createdAtUtc ? -1 : 1;
+      });
+      setEvents(sortedEventList);
    };
 
    function onSimulateFailureChanged(e: any) {
@@ -107,11 +119,15 @@ const Workflow: FC<WorkflowProps> = () => {
 
          <div className="my-3">
             <p>Your next holiday is long overdue. Reserve your holiday below, and leave the flight, rental car and hotel reservations to us.</p>
-            <button type="button" className="btn btn-outline-secondary" onClick={handleBookHoliday}>Reserve your holiday to Hawaii</button>
+            <div className="text-muted">
+               {!canReserve && (<span className="text-danger">Please wait while we connect you...</span>)}
+            </div>
+            <button type="button" className="btn btn-outline-secondary" disabled={!canReserve} onClick={handleBookHoliday}>Reserve your holiday to Hawaii</button>
          </div>
          <Form>
             <Form.Check
                inline
+               disabled={!canReserve}
                type='checkbox'
                label='Simulate failure with reservation'
                id={`simulate-failure-enabled`}
@@ -124,7 +140,7 @@ const Workflow: FC<WorkflowProps> = () => {
                {['Flight', 'Car', 'Hotel'].map((type, typeIndex) => (
                   <Form.Check
                      key={`type-${typeIndex}`}
-                     disabled={!simulateFailureEnabled}
+                     disabled={!canReserve || !simulateFailureEnabled}
                      inline
                      type='radio'
                      label={type}

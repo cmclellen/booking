@@ -9,7 +9,7 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Azure.WebJobs.Extensions.SignalRService;
 using Microsoft.Extensions.Logging;
-using Reservations.Functions.Repositories;
+using Reservations.Functions.Events;
 using Reservations.Functions.Utils;
 
 namespace Reservations.Functions.Functions
@@ -17,16 +17,13 @@ namespace Reservations.Functions.Functions
     public class ReservationOrchestrator
     {
         private readonly ILogger<ReservationOrchestrator> _logger;
-        private readonly IReservationEventRepository _reservationEventRepository;
         private readonly IEventPublisher _eventPublisher;
 
         public ReservationOrchestrator(
             ILogger<ReservationOrchestrator> logger,
-            IReservationEventRepository reservationEventRepository,
             IEventPublisher eventPublisher)
         {
             _logger = logger;
-            _reservationEventRepository = reservationEventRepository;
             _eventPublisher = eventPublisher;
         }
 
@@ -34,7 +31,7 @@ namespace Reservations.Functions.Functions
         public SignalRConnectionInfo Negotiate(
             [HttpTrigger(AuthorizationLevel.Anonymous)]
             HttpRequest req,
-            [SignalRConnectionInfo(HubName = "serverless")]
+            [SignalRConnectionInfo(HubName = Constants.SignalRHubName)]
             SignalRConnectionInfo connectionInfo)
         {
             return connectionInfo;
@@ -100,36 +97,35 @@ namespace Reservations.Functions.Functions
         }
 
         [FunctionName(nameof(CancelCarReservation))]
-        public async Task CancelCarReservation([ActivityTrigger] ReservationRequest reservationRequest, ILogger log,
-            [SignalR(HubName = "serverless")] IAsyncCollector<SignalRMessage> signalRMessages,
+        public async Task CancelCarReservation([ActivityTrigger] ReservationRequest reservationRequest,
             CancellationToken cancellationToken)
         {
             var type = "Car";
-            await CancelReservation(type, reservationRequest, signalRMessages, cancellationToken);
+            await CancelReservation(type, reservationRequest, cancellationToken);
         }
 
         [FunctionName(nameof(CancelFlightReservation))]
-        public async Task CancelFlightReservation([ActivityTrigger] ReservationRequest reservationRequest, ILogger log,
-            [SignalR(HubName = "serverless")] IAsyncCollector<SignalRMessage> signalRMessages,
+        public async Task CancelFlightReservation([ActivityTrigger] ReservationRequest reservationRequest,
             CancellationToken cancellationToken)
         {
             var type = "Flight";
-            await CancelReservation(type, reservationRequest, signalRMessages, cancellationToken);
+            await CancelReservation(type, reservationRequest, cancellationToken);
         }
 
         private async Task CancelReservation(string type, ReservationRequest reservationRequest,
-            IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
-            await SendMessageAsync(reservationRequest, type, signalRMessages, $"Cancelling {type} reservation...",
+            await SendMessageAsync(reservationRequest, type, $"Cancelling {type} reservation...",
                 cancellationToken);
-            await SimulateProcessRequest(type, reservationRequest, signalRMessages, false, cancellationToken);
-            await SendMessageAsync(reservationRequest, type, signalRMessages, $"{type} reservation cancelled.",
+            await SimulateProcessRequest(type, reservationRequest, false, cancellationToken);
+            await SendMessageAsync(reservationRequest, type, $"{type} reservation cancelled.",
                 cancellationToken);
         }
 
         [FunctionName(nameof(OnConnected))]
         public async Task OnConnected(
-            [SignalRTrigger("serverless", "connections", "connected")] InvocationContext invocationContext,
+            [SignalRTrigger(Constants.SignalRHubName, "connections", "connected")]
+            InvocationContext invocationContext,
             ILogger logger)
         {
             logger.LogInformation($"{invocationContext.ConnectionId} has connected");
@@ -138,89 +134,81 @@ namespace Reservations.Functions.Functions
 
         [FunctionName(nameof(OnDisconnected))]
         public async Task OnDisconnected(
-            [SignalRTrigger("serverless", "connections", "disconnected")] InvocationContext invocationContext)
+            [SignalRTrigger(Constants.SignalRHubName, "connections", "disconnected")]
+            InvocationContext invocationContext)
         {
             await Task.CompletedTask;
         }
 
         [FunctionName(nameof(ReservationEventAck))]
         public async Task ReservationEventAck(
-            [SignalRTrigger("serverless", "messages", "ReservationEventAck", new string[] { "message" })]
-            InvocationContext invocationContext, string message)
+            [SignalRTrigger(Constants.SignalRHubName, "messages", "ReservationEventAck", "invocationId", "eventId")]
+            InvocationContext invocationContext, string invocationId, string eventId,
+            CancellationToken cancellationToken)
         {
-            _logger.LogInformation("HERE");
-            _logger.LogInformation($"ReservationEventAck \"{message}\" from {invocationContext.ConnectionId}.");
-            await Task.CompletedTask;
+            var @event = new ReservationAckEvent
+            {
+                ConnectionId = invocationContext.ConnectionId,
+                InvocationId = invocationId,
+                EventId = eventId
+            };
+            await _eventPublisher.PublishAsync(@event, cancellationToken);
         }
 
         [FunctionName(nameof(ReserveCar))]
-        public async Task ReserveCar([ActivityTrigger] ReservationRequest reservationRequest, ILogger log,
-            [SignalR(HubName = "serverless")] IAsyncCollector<SignalRMessage> signalRMessages,
+        public async Task ReserveCar([ActivityTrigger] ReservationRequest reservationRequest,
             CancellationToken cancellationToken)
         {
             var type = "Car";
-            await MakeReservation(type, reservationRequest, signalRMessages, cancellationToken);
+            await MakeReservation(type, reservationRequest, cancellationToken);
         }
 
         private async Task MakeReservation(string type, ReservationRequest reservationRequest,
-            IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
-            await SendMessageAsync(reservationRequest, type, signalRMessages, $"Reserving {type}...",
+            await SendMessageAsync(reservationRequest, type, $"Reserving {type}...",
                 cancellationToken);
-            await SimulateProcessRequest(type, reservationRequest, signalRMessages, true, cancellationToken);
-            await SendMessageAsync(reservationRequest, type, signalRMessages, $"{type} reserved.", cancellationToken);
+            await SimulateProcessRequest(type, reservationRequest, true, cancellationToken);
+            await SendMessageAsync(reservationRequest, type, $"{type} reserved.", cancellationToken);
         }
 
-        private async Task SendMessageAsync(ReservationRequest reservationRequest, string type,
-            IAsyncCollector<SignalRMessage> signalRMessages,
-            string message,
+        private async Task SendMessageAsync(ReservationRequest reservationRequest, string type, string message,
             CancellationToken cancellationToken)
         {
             var @event = new ReservationEvent
             {
                 ConnectionId = reservationRequest.ConnectionId,
-                EventId = reservationRequest.Id,
-                Message = message
+                InvocationId = reservationRequest.Id,
+                Message = message,
+                Type = type
             };
             await _eventPublisher.PublishAsync(@event, cancellationToken);
-
-            var eventId = await _reservationEventRepository.AddAsync(reservationRequest.ConnectionId,
-                reservationRequest.Id, message,
-                cancellationToken);
-            await signalRMessages.AddAsync(new SignalRMessage
-            {
-                ConnectionId = reservationRequest.ConnectionId,
-                Target = "ReservationEvent",
-                Arguments = new object[] { message, type, reservationRequest.Id, eventId.ToString("D") }
-            }, cancellationToken);
         }
 
         [FunctionName(nameof(ReserveHotel))]
-        public async Task ReserveHotel([ActivityTrigger] ReservationRequest reservationRequest, ILogger log,
-            [SignalR(HubName = "serverless")] IAsyncCollector<SignalRMessage> signalRMessages,
+        public async Task ReserveHotel([ActivityTrigger] ReservationRequest reservationRequest,
             CancellationToken cancellationToken)
         {
             var type = "Hotel";
-            await MakeReservation(type, reservationRequest, signalRMessages, cancellationToken);
+            await MakeReservation(type, reservationRequest, cancellationToken);
         }
 
         [FunctionName(nameof(ReserveFlight))]
         public async Task ReserveFlight([ActivityTrigger] ReservationRequest reservationRequest, ILogger log,
-            [SignalR(HubName = "serverless")] IAsyncCollector<SignalRMessage> signalRMessages,
             CancellationToken cancellationToken)
         {
             var type = "Flight";
-            await MakeReservation(type, reservationRequest, signalRMessages, cancellationToken);
+            await MakeReservation(type, reservationRequest, cancellationToken);
         }
 
         private async Task SimulateProcessRequest(string type, ReservationRequest reservationRequest,
-            IAsyncCollector<SignalRMessage> signalRMessages, bool canFail,
+            bool canFail,
             CancellationToken cancellationToken = default)
         {
             await Task.Delay(1000, cancellationToken);
             if (canFail && reservationRequest.SimulateFailure == type)
             {
-                await SendMessageAsync(reservationRequest, type, signalRMessages, $"Error occurred reserving {type}.",
+                await SendMessageAsync(reservationRequest, type, $"Error occurred reserving {type}.",
                     cancellationToken);
                 throw new Exception("Simulated error");
             }

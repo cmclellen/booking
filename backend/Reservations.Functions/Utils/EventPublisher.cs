@@ -1,8 +1,8 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
+using Ardalis.GuardClauses;
 using Azure.Storage.Queues;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using Reservations.Functions.Serilaization;
 
 namespace Reservations.Functions.Utils
@@ -17,7 +17,6 @@ namespace Reservations.Functions.Utils
         private readonly QueueServiceClient _queueServiceClient;
         private readonly IJsonSerializer _jsonSerializer;
         private QueueClient _queueClient;
-        private readonly string _queueName = "reservation-events";
 
         public EventPublisher(
             QueueServiceClient queueServiceClient,
@@ -27,20 +26,31 @@ namespace Reservations.Functions.Utils
             _jsonSerializer = jsonSerializer;
         }
 
-        private async Task<QueueClient> GetQueueClientAsync(CancellationToken cancellationToken)
+        private async Task<QueueClient> GetQueueClientAsync(string messageTypeName, CancellationToken cancellationToken)
         {
             if (_queueClient == null)
             {
-                _queueClient = await _queueServiceClient.CreateQueueAsync(_queueName, null, cancellationToken);
+                _queueClient = await _queueServiceClient.CreateQueueAsync(GetQueueName(messageTypeName), null, cancellationToken);
                 await _queueClient.CreateIfNotExistsAsync(null, cancellationToken);
             }
+
             return _queueClient;
+        }
+
+        // TODO: Make dynamic by convention
+        private string GetQueueName(string messageTypeName)
+        {
+            if (messageTypeName == "ReservationEvent") return "reservation-events";
+            if (messageTypeName == "ReservationAckEvent") return "reservation-ack-events";
+            throw new Exception($"Unexpected message type name \"{messageTypeName}\".");
         }
 
         public async Task PublishAsync<T>(T message,
             CancellationToken cancellationToken)
         {
-            var queueClient = await GetQueueClientAsync(cancellationToken);
+            Guard.Against.Null(message, nameof(message));
+
+            var queueClient = await GetQueueClientAsync(message.GetType().Name, cancellationToken);
             var json = _jsonSerializer.Serialize(message);
             await queueClient.SendMessageAsync(json, cancellationToken);
         }

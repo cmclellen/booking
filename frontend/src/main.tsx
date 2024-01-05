@@ -9,9 +9,9 @@ const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 console.log(`API base url: ${apiBaseUrl}`);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+  <React.StrictMode>    
     <HashRouter basename='/'>
       <App />
-    </HashRouter>
+    </HashRouter>  
   </React.StrictMode>,
 )

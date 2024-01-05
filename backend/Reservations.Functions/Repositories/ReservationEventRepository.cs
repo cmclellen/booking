@@ -2,12 +2,16 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
+using Reservations.Functions.Utils;
 
 namespace Reservations.Functions.Repositories
 {
     public interface IReservationEventRepository
     {
-        Task<Guid> AddAsync(string connectionId, string invocationId, string message,
+        Task<Guid> AddAsync(string connectionId, string invocationId, string message, DateTime createdAtUtc,
+            CancellationToken cancellationToken);
+
+        Task AcknowledgeAsync(string connectionId, string invocationId, string eventId,
             CancellationToken cancellationToken);
     }
 
@@ -33,7 +37,7 @@ namespace Reservations.Functions.Repositories
             return _tableClient;
         }
 
-        public async Task<Guid> AddAsync(string connectionId, string invocationId, string message,
+        public async Task<Guid> AddAsync(string connectionId, string invocationId, string message, DateTime createdAtUtc,
             CancellationToken cancellationToken)
         {
             var tableClient = await GetTableClientAsync(cancellationToken);
@@ -43,11 +47,28 @@ namespace Reservations.Functions.Repositories
             {
                 { "Type", "type" },
                 { "Message", message },
-                { "Acknowledged", false }
+                { "Acknowledged", false },
+                { "CreatedAtUtc", createdAtUtc }
             };
-            await tableClient.AddEntityAsync(tableEntity, cancellationToken);
+            var response = await tableClient.AddEntityAsync(tableEntity, cancellationToken);
+            if (response.IsError)
+            {
+                throw new Exception(response.ReasonPhrase);
+            }
 
             return id;
+        }
+
+        public async Task AcknowledgeAsync(string connectionId, string invocationId, string eventId,
+            CancellationToken cancellationToken)
+        {
+            var tableClient = await GetTableClientAsync(cancellationToken);
+
+            var tableEntity = new TableEntity($"{connectionId}_{invocationId}", eventId)
+            {
+                { "Acknowledged", true }
+            };
+            await tableClient.UpsertEntityAsync(tableEntity, TableUpdateMode.Merge, cancellationToken);
         }
     }
 }
