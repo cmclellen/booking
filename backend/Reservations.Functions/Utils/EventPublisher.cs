@@ -50,9 +50,12 @@ namespace Reservations.Functions.Utils
         {
             Guard.Against.Null(message, nameof(message));
 
-            var queueClient = await GetQueueClientAsync(message.GetType().Name, cancellationToken);
-            var json = _jsonSerializer.Serialize(message);
-            await queueClient.SendMessageAsync(json, cancellationToken);
+            // Disabling queue processing to speed UI demo up
+
+            //var queueClient = await GetQueueClientAsync(message.GetType().Name, cancellationToken);
+            //var json = _jsonSerializer.Serialize(message);
+            //await queueClient.SendMessageAsync(json, cancellationToken);
+            await Task.CompletedTask;
         }
     }
 }
