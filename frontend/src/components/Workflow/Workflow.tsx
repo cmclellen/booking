@@ -21,19 +21,17 @@ const Workflow: FC<WorkflowProps> = () => {
    const [simulateFailureEnabled, setSimulateFailureEnabled] = useState<boolean>(false);
    const [canReserve, setCanReserve] = useState<boolean>(false);
 
-   const onReservationEvent = (message: string, type: string, inboundInvocationId: string, eventId: string) => {
-      const isApplicable = inboundInvocationId === invocationId;
-      console.log(`HERE: ${inboundInvocationId} === ${invocationId}: ${isApplicable}`);
-      if (isApplicable) {
-         var ev = { message, type };
-         console.log('set event', ev);
-         setEvents([...events, ev])
-      }
-      signalRState.sendReservationEventAck(invocationId!, eventId).catch(console.error);
-   };
-
    useEffect(() => {
-      signalRState.onReservationEvent(onReservationEvent);
+      signalRState.onReservationEvent((message: string, type: string, inboundInvocationId: string, eventId: string) => {
+         const isApplicable = inboundInvocationId === invocationId;
+         console.log(`HERE: ${inboundInvocationId} === ${invocationId}: ${isApplicable}`);
+         if (isApplicable) {
+            var ev = { message, type };
+            console.log('set event', ev);
+            setEvents([...events, ev])
+         }
+         signalRState.sendReservationEventAck(invocationId!, eventId).catch(console.error);
+      });
       signalRState.onConnected(_ => {
          setCanReserve(true);
       });
