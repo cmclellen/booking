@@ -31,7 +31,7 @@ const Workflow: FC<WorkflowProps> = () => {
          setEvents([...events, ev])
       }
       signalRState.sendReservationEventAck(invocationId!, eventId).catch(console.error);
-   }, [events]);
+   }, [invocationId, events]);
 
    useEffect(() => {
       signalRState.onReservationEvent(onReservationEvent);
