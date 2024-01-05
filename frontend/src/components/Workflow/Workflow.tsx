@@ -21,17 +21,17 @@ const Workflow: FC<WorkflowProps> = () => {
    const [simulateFailureEnabled, setSimulateFailureEnabled] = useState<boolean>(false);
    const [canReserve, setCanReserve] = useState<boolean>(false);
 
-   const onReservationEvent = useCallback((message: string, type: string, inboundInvocationId: string, eventId: string) => {
+   const onReservationEvent = useCallback(async(message: string, type: string, inboundInvocationId: string, eventId: string) => {
       const isApplicable = inboundInvocationId === invocationId;
       console.log(`HERE: ${inboundInvocationId} === ${invocationId}: ${isApplicable}`);
       if (isApplicable) {
          var ev = { message, type };
          console.log('set event', ev);
          console.log('current events', events.length, events);
-         setEvents([...events, ev])
+         setTimeout(() => setEvents([...events, ev]));
       }
       signalRState.sendReservationEventAck(invocationId!, eventId).catch(console.error);
-   }, [invocationId, events]);
+   }, [events, invocationId]);
 
    useEffect(() => {
       signalRState.onReservationEvent(onReservationEvent);
@@ -41,7 +41,7 @@ const Workflow: FC<WorkflowProps> = () => {
       return () => {
          signalRState.offReservationEvent();
       }
-   }, [invocationId, events]);
+   }, [events, invocationId]);
 
    const handleBookHoliday = async () => {
       var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
