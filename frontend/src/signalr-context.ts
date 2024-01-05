@@ -1,5 +1,4 @@
 import * as signalR from '@microsoft/signalr';
-import { createContext } from 'react';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 

@@ -23,10 +23,7 @@ const Workflow: FC<WorkflowProps> = () => {
 
    const onReservationEvent = async(message: string, type: string, inboundInvocationId: string, eventId: string) => {
       if (inboundInvocationId === invocationId) {
-         addEvent({
-            message,
-            type
-         });
+         addEvent({message, type});
       }
       setTimeout(async () => {
          await signalRState.sendReservationEventAck(invocationId!, eventId)
