@@ -1,7 +1,7 @@
 import { FC, useCallback, useEffect, useState } from 'react';
 import { Icon, WorkflowWrapper } from './Workflow.styled';
 import axios from 'axios';
-import connectionRef from '../../signalr-context';
+import { sigR } from '../../signalr-context';
 import { Form } from 'react-bootstrap';
 import { v4 as uuid } from 'uuid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -28,18 +28,16 @@ const Workflow: FC<WorkflowProps> = () => {
             type
          });
       }
-      setTimeout(() => {
-         connectionRef!.invoke("ReservationEventAck", invocationId, eventId).then(() => {
-            console.log('ReservationEventAck message sent.', {invocationId, eventId});
-         }).catch(err => console.error("Failed broadcast", err));
+      setTimeout(async () => {
+         await sigR.sendReservationEventAck(invocationId!, eventId)
       });
    };
 
    useEffect(() => {
-      connectionRef!.on('ReservationEvent', onReservationEvent);
+      sigR.registerReservationEvent(onReservationEvent);
 
       return () => {
-         connectionRef!.off('ReservationEvent');
+         sigR.unregisterReservationEvent();
       }
    });
 
@@ -48,7 +46,8 @@ const Workflow: FC<WorkflowProps> = () => {
       console.log(`Invoking ${url}...`);
       var eventList = [{ message: `Initiating reservation...` }];
       setEvents(eventList);
-      const connectionId = connectionRef?.connectionId;
+      const connectionId = sigR.getConnectionId();
+      console.log(`connectionId: ${connectionId}`);
       var id = uuid();
       setInvocationId(id);
       await axios.post(url, { connectionId, simulateFailure, id });

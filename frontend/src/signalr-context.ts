@@ -45,3 +45,20 @@ if(!connectionRef) {
 }
 
 export default connectionRef;
+export const sigR = {
+  registerReservationEvent: (callback: (...args: any[]) => any) => {
+    connectionRef!.on('ReservationEvent', callback);
+  },
+
+  unregisterReservationEvent: () => {
+    connectionRef!.off('ReservationEvent');
+  },
+
+  sendReservationEventAck: async (invocationId: string, eventId: string) => {
+    return connectionRef!.invoke("ReservationEventAck", invocationId, eventId)
+      .then(() => console.log('ReservationEventAck message sent.', {invocationId, eventId}))
+      .catch(err => console.error("Failed broadcast", err));
+  },
+
+  getConnectionId: () => connectionRef?.connectionId
+};
