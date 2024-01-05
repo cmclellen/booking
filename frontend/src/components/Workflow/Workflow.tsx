@@ -24,11 +24,8 @@ const Workflow: FC<WorkflowProps> = () => {
 
    const onReservationEvent = useCallback(async(message: string, type: string, inboundInvocationId: string, eventId: string) => {
       const isApplicable = inboundInvocationId === invocationId;
-      console.log(`HERE: ${inboundInvocationId} === ${invocationId}: ${isApplicable}`);
       if (isApplicable) {
          var ev = { message, type };
-         console.log('set event', ev);
-         console.log('current events', events.length, events);
          eventList.current.push(ev);
          setEvents([...eventList.current]);
       }
