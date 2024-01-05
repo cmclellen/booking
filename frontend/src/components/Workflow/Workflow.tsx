@@ -28,6 +28,7 @@ const Workflow: FC<WorkflowProps> = () => {
          if (isApplicable) {
             var ev = { message, type };
             console.log('set event', ev);
+            console.log('current events', events.length, events);
             setEvents([...events, ev])
          }
          signalRState.sendReservationEventAck(invocationId!, eventId).catch(console.error);
