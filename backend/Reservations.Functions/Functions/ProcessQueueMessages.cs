@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Ardalis.GuardClauses;
 using Microsoft.Azure.WebJobs;
@@ -25,7 +26,7 @@ namespace Reservations.Functions.Functions
 
         [FunctionName(nameof(ProcessReservationEvents))]
         public async Task ProcessReservationEvents(
-            [QueueTrigger("reservation-events")] ReservationEvent reservationEvent,
+            [QueueTrigger("reservation-events")] ReservationEvent reservationEvent, DateTimeOffset insertionTime,
             [SignalR(HubName = Constants.SignalRHubName)]
             IAsyncCollector<SignalRMessage> signalRMessages, CancellationToken cancellationToken)
         {
@@ -33,7 +34,7 @@ namespace Reservations.Functions.Functions
 
             _logger.LogDebug("Adding event to table...");
             var eventId = await _reservationEventRepository.AddAsync(reservationEvent.ConnectionId,
-                reservationEvent.InvocationId, reservationEvent.Message, cancellationToken);
+                reservationEvent.InvocationId, reservationEvent.Message, insertionTime.UtcDateTime, cancellationToken);
             _logger.LogInformation("Successfully added event to table.");
 
             _logger.LogDebug("Sending SignalR message...");
@@ -44,7 +45,7 @@ namespace Reservations.Functions.Functions
                 Arguments = new object[]
                 {
                     reservationEvent.Message, reservationEvent.Type, reservationEvent.InvocationId,
-                    eventId.ToString("D")
+                    eventId.ToString("D"), insertionTime.UtcDateTime
                 }
             }, cancellationToken);
 

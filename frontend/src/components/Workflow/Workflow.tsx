@@ -10,7 +10,15 @@ import { signalRState } from '../../signalr-context';
 interface IReservationEvent {
    message: string;
    type?: string;
+   createdAtUtc: Date
+   eventId?: string
 }
+
+let minDate = new Date(-8640000000000000);
+let counter = 0;
+const createReservationEvent = (message: string): IReservationEvent => {
+   return { message, createdAtUtc: new Date(minDate.getTime() + counter) };
+};
 
 interface WorkflowProps { }
 
@@ -22,12 +30,12 @@ const Workflow: FC<WorkflowProps> = () => {
    const [canReserve, setCanReserve] = useState<boolean>(false);
    const eventList = useRef<Array<IReservationEvent>>([]);
 
-   const onReservationEvent = useCallback(async(message: string, type: string, inboundInvocationId: string, eventId: string) => {
+   const onReservationEvent = useCallback(async(message: string, type: string, inboundInvocationId: string, eventId: string, createdAtUtc: Date) => {
       const isApplicable = inboundInvocationId === invocationId;
       if (isApplicable) {
-         var ev = { message, type };
+         var ev: IReservationEvent = { message, type, createdAtUtc, eventId };
          eventList.current.push(ev);
-         setEvents([...eventList.current]);
+         setSortedEvents();
       }
       signalRState.sendReservationEventAck(invocationId!, eventId).catch(console.error);
    }, [events, invocationId]);
@@ -45,15 +53,24 @@ const Workflow: FC<WorkflowProps> = () => {
    const handleBookHoliday = async () => {
       var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
       console.log(`Invoking ${url}...`);
-      eventList.current = [{ message: `Initiating reservation...` }];
-      setEvents([...eventList.current]);
+      
+      eventList.current = [createReservationEvent(`Initiating reservation...`)];
+      setSortedEvents();
       const connectionId = signalRState.connectionId;
       console.log(`connectionId: ${connectionId}`);
       var id = uuid();
       setInvocationId(id);
       await axios.post(url, { connectionId, simulateFailure, id });
-      eventList.current.push({ message: `Reservation initiated.` });
-      setEvents([...eventList.current]);
+      eventList.current.push(createReservationEvent(`Reservation initiated.`));
+      setSortedEvents();
+   };
+
+   const setSortedEvents = () => {
+      var sortedEventList: Array<IReservationEvent> = eventList.current;
+      sortedEventList = [...sortedEventList].sort((a: IReservationEvent, b: IReservationEvent) => {
+         return a.createdAtUtc < b.createdAtUtc ? -1 : 1;
+      });
+      setEvents(sortedEventList);
    };
 
    function onSimulateFailureChanged(e: any) {

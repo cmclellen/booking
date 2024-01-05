@@ -37,6 +37,7 @@ namespace Reservations.Functions.Utils
             return _queueClient;
         }
 
+        // TODO: Make dynamic by convention
         private string GetQueueName(string messageTypeName)
         {
             if (messageTypeName == "ReservationEvent") return "reservation-events";
