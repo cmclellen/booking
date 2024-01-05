@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 import { Icon, WorkflowWrapper } from './Workflow.styled';
 import axios from 'axios';
 import { Form } from 'react-bootstrap';
@@ -21,18 +21,20 @@ const Workflow: FC<WorkflowProps> = () => {
    const [simulateFailureEnabled, setSimulateFailureEnabled] = useState<boolean>(false);
    const [canReserve, setCanReserve] = useState<boolean>(false);
 
+   const onReservationEvent = useCallback((message: string, type: string, inboundInvocationId: string, eventId: string) => {
+      const isApplicable = inboundInvocationId === invocationId;
+      console.log(`HERE: ${inboundInvocationId} === ${invocationId}: ${isApplicable}`);
+      if (isApplicable) {
+         var ev = { message, type };
+         console.log('set event', ev);
+         console.log('current events', events.length, events);
+         setEvents([...events, ev])
+      }
+      signalRState.sendReservationEventAck(invocationId!, eventId).catch(console.error);
+   }, [events]);
+
    useEffect(() => {
-      signalRState.onReservationEvent((message: string, type: string, inboundInvocationId: string, eventId: string) => {
-         const isApplicable = inboundInvocationId === invocationId;
-         console.log(`HERE: ${inboundInvocationId} === ${invocationId}: ${isApplicable}`);
-         if (isApplicable) {
-            var ev = { message, type };
-            console.log('set event', ev);
-            console.log('current events', events.length, events);
-            setEvents([...events, ev])
-         }
-         signalRState.sendReservationEventAck(invocationId!, eventId).catch(console.error);
-      });
+      signalRState.onReservationEvent(onReservationEvent);
       signalRState.onConnected(_ => {
          setCanReserve(true);
       });
