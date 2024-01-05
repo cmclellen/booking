@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { Icon, WorkflowWrapper } from './Workflow.styled';
 import axios from 'axios';
 import { Form } from 'react-bootstrap';
@@ -40,7 +40,7 @@ const Workflow: FC<WorkflowProps> = () => {
       }
    });
 
-   const handleBookHoliday = useCallback(async () => {
+   const handleBookHoliday = async () => {
       var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
       console.log(`Invoking ${url}...`);
       var eventList = [{ message: `Initiating reservation...` }];
@@ -52,7 +52,7 @@ const Workflow: FC<WorkflowProps> = () => {
       await axios.post(url, { connectionId, simulateFailure, id });
       eventList.push({ message: `Reservation initiated.` })
       setEvents(eventList);
-   }, [setEvents, setInvocationId]);
+   };
 
    const addEvent = (ev: IReservationEvent) => {
       setTimeout(() => setEvents([...events, ev]));
