@@ -37,7 +37,7 @@ const Workflow: FC<WorkflowProps> = () => {
          eventList.current.push(ev);
          setSortedEvents();
       }
-      signalRState.sendReservationEventAck(invocationId!, eventId).catch(console.error);
+      await signalRState.sendReservationEventAck(invocationId!, eventId);
    }, [events, invocationId]);
 
    useEffect(() => {
