@@ -104,6 +104,9 @@ const Workflow: FC<WorkflowProps> = () => {
 
          <div className="my-3">
             <p>Your next holiday is long overdue. Reserve your holiday below, and leave the flight, rental car and hotel reservations to us.</p>
+            <div className="text-muted">
+               {!canReserve && (<span>Please wait while we connect you...</span>)}
+            </div>
             <button type="button" className="btn btn-outline-secondary" disabled={!canReserve} onClick={handleBookHoliday}>Reserve your holiday to Hawaii</button>
          </div>
          <Form>
