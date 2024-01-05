@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from 'react';
+import { FC, useCallback, useEffect, useState } from 'react';
 import { Icon, WorkflowWrapper } from './Workflow.styled';
 import axios from 'axios';
 import connectionRef from '../../signalr-context';
@@ -19,6 +19,7 @@ const Workflow: FC<WorkflowProps> = () => {
    const [invocationId, setInvocationId] = useState<string>();
    const [simulateFailure, setSimulateFailure] = useState<string | undefined>(undefined);
    const [simulateFailureEnabled, setSimulateFailureEnabled] = useState<boolean>(false);
+   const [canReserve, setCanReserve] = useState<boolean>(true);
 
    const onReservationEvent = async(message: string, type: string, inboundInvocationId: string, eventId: string) => {
       if (inboundInvocationId === invocationId) {
@@ -42,7 +43,7 @@ const Workflow: FC<WorkflowProps> = () => {
       }
    });
 
-   const handleBookHoliday = async () => {
+   const handleBookHoliday = useCallback(async () => {
       var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
       console.log(`Invoking ${url}...`);
       var eventList = [{ message: `Initiating reservation...` }];
@@ -53,7 +54,7 @@ const Workflow: FC<WorkflowProps> = () => {
       await axios.post(url, { connectionId, simulateFailure, id });
       eventList.push({ message: `Reservation initiated.` })
       setEvents(eventList);
-   };
+   }, [setEvents, setInvocationId]);
 
    const addEvent = (ev: IReservationEvent) => {
       setTimeout(() => setEvents([...events, ev]));
@@ -105,11 +106,12 @@ const Workflow: FC<WorkflowProps> = () => {
 
          <div className="my-3">
             <p>Your next holiday is long overdue. Reserve your holiday below, and leave the flight, rental car and hotel reservations to us.</p>
-            <button type="button" className="btn btn-outline-secondary" onClick={handleBookHoliday}>Reserve your holiday to Hawaii</button>
+            <button type="button" className="btn btn-outline-secondary" disabled={!canReserve} onClick={handleBookHoliday}>Reserve your holiday to Hawaii</button>
          </div>
          <Form>
             <Form.Check
                inline
+               disabled={!canReserve}
                type='checkbox'
                label='Simulate failure with reservation'
                id={`simulate-failure-enabled`}
@@ -120,9 +122,9 @@ const Workflow: FC<WorkflowProps> = () => {
 
             <div className="d-inline-flex">
                {['Flight', 'Car', 'Hotel'].map((type, typeIndex) => (
-                  <Form.Check
+                  <Form.Check                     
                      key={`type-${typeIndex}`}
-                     disabled={!simulateFailureEnabled}
+                     disabled={!canReserve || !simulateFailureEnabled}
                      inline
                      type='radio'
                      label={type}
