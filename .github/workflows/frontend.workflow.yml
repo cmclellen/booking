@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - master
-      - FurtCleanup234
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend.workflow.yml'
