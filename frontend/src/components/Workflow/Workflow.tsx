@@ -57,7 +57,7 @@ const Workflow: FC<WorkflowProps> = () => {
    };
 
    const addEvent = (ev: IReservationEvent) => {
-      setTimeout(() => setEvents([...events, ev]));
+      setEvents([...events, ev]);
    };
 
    function onSimulateFailureChanged(e: any) {
