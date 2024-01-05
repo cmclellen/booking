@@ -38,7 +38,7 @@ const Workflow: FC<WorkflowProps> = () => {
       return () => {
          signalRState.offReservationEvent();
       }
-   });
+   }, [invocationId, events]);
 
    const handleBookHoliday = async () => {
       var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
