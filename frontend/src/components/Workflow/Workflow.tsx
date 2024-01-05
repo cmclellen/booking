@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useState } from 'react';
+import { FC, useCallback, useEffect, useRef, useState } from 'react';
 import { Icon, WorkflowWrapper } from './Workflow.styled';
 import axios from 'axios';
 import { Form } from 'react-bootstrap';
@@ -20,6 +20,7 @@ const Workflow: FC<WorkflowProps> = () => {
    const [simulateFailure, setSimulateFailure] = useState<string | undefined>(undefined);
    const [simulateFailureEnabled, setSimulateFailureEnabled] = useState<boolean>(false);
    const [canReserve, setCanReserve] = useState<boolean>(false);
+   const eventList = useRef<Array<IReservationEvent>>([]);
 
    const onReservationEvent = useCallback(async(message: string, type: string, inboundInvocationId: string, eventId: string) => {
       const isApplicable = inboundInvocationId === invocationId;
@@ -28,7 +29,8 @@ const Workflow: FC<WorkflowProps> = () => {
          var ev = { message, type };
          console.log('set event', ev);
          console.log('current events', events.length, events);
-         setTimeout(() => setEvents([...events, ev]));
+         eventList.current.push(ev);
+         setEvents([...eventList.current]);
       }
       signalRState.sendReservationEventAck(invocationId!, eventId).catch(console.error);
    }, [events, invocationId]);
@@ -46,15 +48,15 @@ const Workflow: FC<WorkflowProps> = () => {
    const handleBookHoliday = async () => {
       var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
       console.log(`Invoking ${url}...`);
-      var eventList = [{ message: `Initiating reservation...` }];
-      setEvents(eventList);
+      eventList.current = [{ message: `Initiating reservation...` }];
+      setEvents([...eventList.current]);
       const connectionId = signalRState.connectionId;
       console.log(`connectionId: ${connectionId}`);
       var id = uuid();
       setInvocationId(id);
       await axios.post(url, { connectionId, simulateFailure, id });
-      eventList.push({ message: `Reservation initiated.` });
-      setEvents(eventList);
+      eventList.current.push({ message: `Reservation initiated.` });
+      setEvents([...eventList.current]);
    };
 
    function onSimulateFailureChanged(e: any) {
