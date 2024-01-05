@@ -22,7 +22,9 @@ const Workflow: FC<WorkflowProps> = () => {
    const [canReserve, setCanReserve] = useState<boolean>(false);
 
    const onReservationEvent = async(message: string, type: string, inboundInvocationId: string, eventId: string) => {
-      if (inboundInvocationId === invocationId) {
+      const isApplicable = inboundInvocationId === invocationId;
+      console.log(`HERE: ${inboundInvocationId} === ${invocationId}: ${isApplicable}`);
+      if (isApplicable) {
          addEvent({message, type});
       }
       setTimeout(async () => {
