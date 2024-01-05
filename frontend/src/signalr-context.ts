@@ -52,7 +52,7 @@ if (!connectionRef) {
 export interface SignalRState {
   onReservationEvent: (callback: (...args: any[]) => any) => void;
   offReservationEvent: () => void;
-  sendReservationEventAck: (invocationId: string, eventId: string) => void;
+  sendReservationEventAck: (invocationId: string, eventId: string) => Promise<any>;
   start: () => void;
   stop: () => void;
   onConnected: (callback: (connectionId: string) => void) => void;
@@ -73,7 +73,7 @@ export const signalRState: SignalRState = {
     connectionRef!.off('ReservationEvent');
   },
 
-  sendReservationEventAck: async (invocationId: string, eventId: string) => {
+  sendReservationEventAck: (invocationId: string, eventId: string): Promise<any> => {
     return connectionRef!.invoke("ReservationEventAck", invocationId, eventId)
       .then(() => console.log('ReservationEventAck message sent.', { invocationId, eventId }))
       .catch(err => console.error("Failed broadcast", err));

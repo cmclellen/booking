@@ -6,6 +6,7 @@ import { v4 as uuid } from 'uuid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBed, faCar, faPersonWalking, faPlane } from '@fortawesome/free-solid-svg-icons';
 import { signalRState } from '../../signalr-context';
+import { Console } from 'console';
 
 interface IReservationEvent {
    message: string;
@@ -21,15 +22,15 @@ const Workflow: FC<WorkflowProps> = () => {
    const [simulateFailureEnabled, setSimulateFailureEnabled] = useState<boolean>(false);
    const [canReserve, setCanReserve] = useState<boolean>(false);
 
-   const onReservationEvent = async(message: string, type: string, inboundInvocationId: string, eventId: string) => {
+   const onReservationEvent = (message: string, type: string, inboundInvocationId: string, eventId: string) => {
       const isApplicable = inboundInvocationId === invocationId;
       console.log(`HERE: ${inboundInvocationId} === ${invocationId}: ${isApplicable}`);
       if (isApplicable) {
-         addEvent({message, type});
+         var ev = { message, type };
+         console.log('set event', ev);
+         setEvents([...events, ev])
       }
-      setTimeout(async () => {
-         await signalRState.sendReservationEventAck(invocationId!, eventId)
-      });
+      signalRState.sendReservationEventAck(invocationId!, eventId).catch(console.error);
    };
 
    useEffect(() => {
@@ -40,7 +41,7 @@ const Workflow: FC<WorkflowProps> = () => {
       return () => {
          signalRState.offReservationEvent();
       }
-   });
+   }, []);
 
    const handleBookHoliday = async () => {
       var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
@@ -54,10 +55,6 @@ const Workflow: FC<WorkflowProps> = () => {
       await axios.post(url, { connectionId, simulateFailure, id });
       eventList.push({ message: `Reservation initiated.` })
       setEvents(eventList);
-   };
-
-   const addEvent = (ev: IReservationEvent) => {
-      setEvents([...events, ev]);
    };
 
    function onSimulateFailureChanged(e: any) {
@@ -125,7 +122,7 @@ const Workflow: FC<WorkflowProps> = () => {
 
             <div className="d-inline-flex">
                {['Flight', 'Car', 'Hotel'].map((type, typeIndex) => (
-                  <Form.Check                     
+                  <Form.Check
                      key={`type-${typeIndex}`}
                      disabled={!canReserve || !simulateFailureEnabled}
                      inline
