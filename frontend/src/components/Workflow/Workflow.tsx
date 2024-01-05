@@ -15,6 +15,7 @@ interface IReservationEvent {
 interface WorkflowProps { }
 
 const Workflow: FC<WorkflowProps> = () => {
+   var eventList: Array<IReservationEvent> = [];
    const [events, setEvents] = useState<Array<IReservationEvent>>([]);
    const [invocationId, setInvocationId] = useState<string>();
    const [simulateFailure, setSimulateFailure] = useState<string | undefined>(undefined);
@@ -45,17 +46,18 @@ const Workflow: FC<WorkflowProps> = () => {
    const handleBookHoliday = async () => {
       var url = `${import.meta.env.VITE_API_BASE_URL}/api/Reservation_HttpStart`;
       console.log(`Invoking ${url}...`);
-      var eventList: IReservationEvent[] = [{ message: `Initiating reservation...` }];
+      eventList = [{ message: `Initiating reservation...` }];
       setEvents(eventList);
       const connectionId = connectionRef?.connectionId;
       var id = uuid();
       setInvocationId(id);
       await axios.post(url, { connectionId, simulateFailure, id });
-      setEvents([...eventList, { message: `Reservation initiated.` }]);
+      addEvent({ message: `Reservation initiated.` })
    };
 
    const addEvent = (ev: IReservationEvent) => {
-      setEvents([...events, ev]);
+      eventList.push(ev)
+      setEvents(eventList);
    };
 
    function onSimulateFailureChanged(e: any) {
