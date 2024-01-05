@@ -205,7 +205,7 @@ namespace Reservations.Functions.Functions
             bool canFail,
             CancellationToken cancellationToken = default)
         {
-            await Task.Delay(1000, cancellationToken);
+            await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
             if (canFail && reservationRequest.SimulateFailure == type)
             {
                 await SendMessageAsync(reservationRequest, type, $"Error occurred reserving {type}.",

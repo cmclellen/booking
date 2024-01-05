@@ -48,7 +48,6 @@ namespace Reservations.Functions.Functions
                     eventId.ToString("D"), insertionTime.UtcDateTime
                 }
             }, cancellationToken);
-
             _logger.LogInformation("Successfully sent SignalR message.");
         }
 
