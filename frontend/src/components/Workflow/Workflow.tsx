@@ -1,11 +1,11 @@
 import { FC, useCallback, useEffect, useState } from 'react';
 import { Icon, WorkflowWrapper } from './Workflow.styled';
 import axios from 'axios';
-import { sigR } from '../../signalr-context';
 import { Form } from 'react-bootstrap';
 import { v4 as uuid } from 'uuid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBed, faCar, faPersonWalking, faPlane } from '@fortawesome/free-solid-svg-icons';
+import { signalRState } from '../../signalr-context';
 
 interface IReservationEvent {
    message: string;
@@ -19,7 +19,7 @@ const Workflow: FC<WorkflowProps> = () => {
    const [invocationId, setInvocationId] = useState<string>();
    const [simulateFailure, setSimulateFailure] = useState<string | undefined>(undefined);
    const [simulateFailureEnabled, setSimulateFailureEnabled] = useState<boolean>(false);
-   const [canReserve, setCanReserve] = useState<boolean>(true);
+   const [canReserve, setCanReserve] = useState<boolean>(false);
 
    const onReservationEvent = async(message: string, type: string, inboundInvocationId: string, eventId: string) => {
       if (inboundInvocationId === invocationId) {
@@ -29,15 +29,17 @@ const Workflow: FC<WorkflowProps> = () => {
          });
       }
       setTimeout(async () => {
-         await sigR.sendReservationEventAck(invocationId!, eventId)
+         await signalRState.sendReservationEventAck(invocationId!, eventId)
       });
    };
 
    useEffect(() => {
-      sigR.registerReservationEvent(onReservationEvent);
-
+      signalRState.onReservationEvent(onReservationEvent);
+      signalRState.onConnected(_ => {
+         setCanReserve(true);
+      });
       return () => {
-         sigR.unregisterReservationEvent();
+         signalRState.offReservationEvent();
       }
    });
 
@@ -46,7 +48,7 @@ const Workflow: FC<WorkflowProps> = () => {
       console.log(`Invoking ${url}...`);
       var eventList = [{ message: `Initiating reservation...` }];
       setEvents(eventList);
-      const connectionId = sigR.getConnectionId();
+      const connectionId = signalRState.connectionId;
       console.log(`connectionId: ${connectionId}`);
       var id = uuid();
       setInvocationId(id);
