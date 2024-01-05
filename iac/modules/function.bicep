@@ -3,6 +3,11 @@ param tags object
 param resourceNameFormat string
 param storageAccountType string = 'Standard_LRS'
 
+var queueNames = [
+  'reservation-events'
+  'reservation-ack-events'
+]
+
 resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   name: format(replace(resourceNameFormat, '-', ''), 'st', 'fnapp')
   location: location
@@ -10,6 +15,13 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' = {
   kind: 'StorageV2'
   sku: {
     name: storageAccountType
+  }
+
+  resource queueServices 'queueServices' = {
+    name: 'default'
+    resource queues 'queues' = [for queueName in queueNames : {
+      name: queueName
+    }]
   }
 }
 
