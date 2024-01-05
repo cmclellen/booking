@@ -1,6 +1,7 @@
 import * as signalR from '@microsoft/signalr';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+const RESERVATION_EVENT_NAME = 'ReservationEvent';
 
 const hubUrl = `${apiBaseUrl}/api`;
 console.log(`hub url: ${hubUrl}`);
@@ -67,11 +68,12 @@ export const signalRState: SignalRState = {
 
   onReservationEvent: (callback: (...args: any[]) => any) => {
     console.log('onReservationEvent');
-    connectionRef!.on('ReservationEvent', callback);
+    connectionRef!.off(RESERVATION_EVENT_NAME);
+    connectionRef!.on(RESERVATION_EVENT_NAME, callback);
   },
 
   offReservationEvent: () => {
-    connectionRef!.off('ReservationEvent');
+    connectionRef!.off(RESERVATION_EVENT_NAME);
   },
 
   sendReservationEventAck: (invocationId: string, eventId: string): Promise<any> => {
