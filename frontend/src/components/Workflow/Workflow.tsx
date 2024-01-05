@@ -6,7 +6,6 @@ import { v4 as uuid } from 'uuid';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBed, faCar, faPersonWalking, faPlane } from '@fortawesome/free-solid-svg-icons';
 import { signalRState } from '../../signalr-context';
-import { Console } from 'console';
 
 interface IReservationEvent {
    message: string;
