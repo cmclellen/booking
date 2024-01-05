@@ -66,6 +66,7 @@ export const signalRState: SignalRState = {
   stop: stop,
 
   onReservationEvent: (callback: (...args: any[]) => any) => {
+    console.log('onReservationEvent');
     connectionRef!.on('ReservationEvent', callback);
   },
 
